@@ -7,6 +7,9 @@
   "main": "./dist/DragSelect.js",
   "module": "./dist/DragSelect.esm.js",
   "types": "./dist/DragSelect.d.ts",
+  "exports": {
+    "./*": "./DragSelect/"
+  },
   "workspaces": [
     "DragSelect",
     "www"
