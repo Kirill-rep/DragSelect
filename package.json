@@ -4,11 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "main": "./dist/DragSelect.js",
-  "module": "./dist/DragSelect.esm.js",
-  "types": "./dist/DragSelect.d.ts",
   "exports": {
-    "./*": "./DragSelect/"
+    "./": "./DragSelect/dist/DragSelect.js",
+    "./": "./DragSelect/dist/DragSelect.esm.js",
+    "./": "./DragSelect/dist/DragSelect.d.ts"
   },
   "workspaces": [
     "DragSelect",
