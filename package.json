@@ -5,9 +5,7 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./": "./DragSelect/dist/DragSelect.js",
-    "./": "./DragSelect/dist/DragSelect.esm.js",
-    "./": "./DragSelect/dist/DragSelect.d.ts"
+    "./": "./DragSelect/dist/DragSelect.js"
   },
   "workspaces": [
     "DragSelect",
