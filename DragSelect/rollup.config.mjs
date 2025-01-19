@@ -59,26 +59,14 @@ export default [
         format: 'es',
         name: 'DragSelect',
         compact: true,
-        // plugins: [
-        //   terser({
-        //     compress: {
-        //       drop_console: false,
-        //     },
-        //   }),
-        // ],
+        plugins: [terser()],
       },
       {
         file: './dist/ds.min.js',
         format: 'umd',
         name: 'DragSelect',
         compact: true,
-        // plugins: [
-        //   terser({
-        //     compress: {
-        //       drop_console: false,
-        //     },
-        //   }),
-        // ],
+        plugins: [terser()],
       },
     ],
     plugins: [typescript(), resolve()],
