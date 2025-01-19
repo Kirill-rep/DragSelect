@@ -568,10 +568,8 @@
             this._elements = this.DS.getSelection();
             this._selectionRect = this.DS.Selection.boundingRect;
             this.handleZIndex(true);
-            // console.log(this._elements[0].getBoundingClientRect().top)
             // console.log(this._elements[0])
             if (!this._draggingElement) {
-                console.log('if true2');
                 this._draggingElement = document.createElement('div');
                 this._draggingElement.classList.add('drag-ghost');
                 Object.assign(this._draggingElement.style, {
