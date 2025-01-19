@@ -458,7 +458,7 @@ type DSDragKeys = {
     right: Array<string>;
 };
 
-type DSSelectedPublishEventNames = "Selected:added:pre" | "Selected:added" | "Selected:removed" | "Selected:removed:pre";
+type DSSelectedPublishEventNames = 'Selected:added:pre' | 'Selected:added' | 'Selected:removed' | 'Selected:removed:pre';
 type DSSelectedPublishEventData<E extends DSInputElement> = {
     items: E[];
     item: E;
@@ -574,6 +574,7 @@ declare class Drag<E extends DSInputElement> {
     private _dragKeys?;
     private _dragKeysFlat;
     private _selectionRect;
+    private _draggingElement;
     DS: DragSelect<E>;
     PS: PubSub<E>;
     Settings: DSSettings<E>;

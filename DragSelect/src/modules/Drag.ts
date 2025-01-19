@@ -14,6 +14,7 @@ export default class Drag<E extends DSInputElement> {
   private _dragKeys?: DSDragKeys
   private _dragKeysFlat: string[] = []
   private _selectionRect: DSBoundingRect = vect2rect(num2vect(0))
+  private _draggingElement: DSInputElement | null = null
   DS: DragSelect<E>
   PS: PubSub<E>
   Settings: DSSettings<E>
@@ -133,11 +134,27 @@ export default class Drag<E extends DSInputElement> {
     isDraggingKeyboard?: boolean
   }) => {
     if (!isDragging || isDraggingKeyboard) return
+    console.log('start')
     this._prevCursorPos = undefined
     this._prevScrollPos = undefined
     this._elements = this.DS.getSelection()
     this._selectionRect = this.DS.Selection.boundingRect
     this.handleZIndex(true)
+    // console.log(this._elements[0])
+    if (!this._draggingElement) {
+      this._draggingElement = document.createElement('div')
+      this._draggingElement.classList.add('drag-ghost')
+      Object.assign(this._draggingElement.style, {
+        position: 'absolute',
+        width: '100px',
+        height: '100px',
+        backgroundColor: 'rgba(0, 0, 255, 0.5)',
+        left: `${this.DS.getCurrentCursorPosition().x}px`,
+        top: `${this.DS.getCurrentCursorPosition().y}px`,
+        zIndex: '100000',
+      })
+      document.body.appendChild(this._draggingElement)
+    }
   }
 
   public stop = () => {
@@ -145,6 +162,10 @@ export default class Drag<E extends DSInputElement> {
     this._prevScrollPos = undefined
     this.handleZIndex(false)
     this._elements = []
+    this._draggingElement?.remove()
+    this._draggingElement = null
+
+    console.log('stop')
   }
 
   private update = ({
@@ -169,7 +190,7 @@ export default class Drag<E extends DSInputElement> {
       scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
       selectionRect: this._selectionRect,
     })
-
+    // console.log(this._selectionRect)
     this.moveElements(posDirection)
   }
 
@@ -190,13 +211,13 @@ export default class Drag<E extends DSInputElement> {
       elements: this._elements,
       direction: posDirection,
     })
-    elements.forEach((element) => {
-      moveElement({
-        element,
-        posDirection: direction,
-        containerRect: this.DS.SelectorArea.rect,
-        useTransform: this.Settings.useTransform,
-      })
+    console.log(this._draggingElement)
+
+    moveElement({
+      element: this._draggingElement ? this._draggingElement : elements[0],
+      posDirection: direction,
+      containerRect: this.DS.SelectorArea.rect,
+      useTransform: this.Settings.useTransform,
     })
   }
 

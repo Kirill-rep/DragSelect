@@ -479,6 +479,7 @@
         _dragKeys;
         _dragKeysFlat = [];
         _selectionRect = vect2rect(num2vect(0));
+        _draggingElement = null;
         DS;
         PS;
         Settings;
@@ -561,17 +562,38 @@
         start = ({ isDragging, isDraggingKeyboard, }) => {
             if (!isDragging || isDraggingKeyboard)
                 return;
+            console.log('start');
             this._prevCursorPos = undefined;
             this._prevScrollPos = undefined;
             this._elements = this.DS.getSelection();
             this._selectionRect = this.DS.Selection.boundingRect;
             this.handleZIndex(true);
+            // console.log(this._elements[0].getBoundingClientRect().top)
+            // console.log(this._elements[0])
+            if (!this._draggingElement) {
+                console.log('if true2');
+                this._draggingElement = document.createElement('div');
+                this._draggingElement.classList.add('drag-ghost');
+                Object.assign(this._draggingElement.style, {
+                    position: 'absolute',
+                    width: '100px',
+                    height: '100px',
+                    backgroundColor: 'rgba(0, 0, 255, 0.5)',
+                    left: `${this.DS.getCurrentCursorPosition().x}px`,
+                    top: `${this.DS.getCurrentCursorPosition().y}px`,
+                    zIndex: '100000',
+                });
+                document.body.appendChild(this._draggingElement);
+            }
         };
         stop = () => {
             this._prevCursorPos = undefined;
             this._prevScrollPos = undefined;
             this.handleZIndex(false);
             this._elements = [];
+            this._draggingElement?.remove();
+            this._draggingElement = null;
+            console.log('stop');
         };
         update = ({ isDragging, isDraggingKeyboard, }) => {
             if (!isDragging ||
@@ -586,6 +608,7 @@
                 scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
                 selectionRect: this._selectionRect,
             });
+            // console.log(this._selectionRect)
             this.moveElements(posDirection);
         };
         handleZIndex = (add) => {
@@ -599,13 +622,12 @@
                 elements: this._elements,
                 direction: posDirection,
             });
-            elements.forEach((element) => {
-                moveElement({
-                    element,
-                    posDirection: direction,
-                    containerRect: this.DS.SelectorArea.rect,
-                    useTransform: this.Settings.useTransform,
-                });
+            console.log(this._draggingElement);
+            moveElement({
+                element: this._draggingElement ? this._draggingElement : elements[0],
+                posDirection: direction,
+                containerRect: this.DS.SelectorArea.rect,
+                useTransform: this.Settings.useTransform,
             });
         };
         get _cursorDiff() {
@@ -1653,6 +1675,7 @@
             if (this._rects)
                 return this._rects;
             this._rects = new Map();
+            // this._rects.set()
             this.forEach((element) => this._rects?.set(element, element.getBoundingClientRect()));
             // since elements can be moved, we need to update the rects every X ms
             if (this._timeout)
@@ -1849,7 +1872,7 @@
 
     // @TODO: calculate the difference in all directions based on the mouse position! (since the selection square ratio won’t change we don’t have to re-calculate and re-fetch the position of every element in the square during drag)
     /** Returns the compound bounding rect of multiple elements */
-    const getSelectionRect = (SelectedSet) => {
+    const getSelectionRect = (SelectedSet, ghostElem) => {
         const rect = {
             top: Number.POSITIVE_INFINITY,
             left: Number.POSITIVE_INFINITY,
@@ -1858,12 +1881,28 @@
             width: Number.NEGATIVE_INFINITY,
             height: Number.NEGATIVE_INFINITY,
         };
-        SelectedSet.rects.forEach(elementRect => {
-            rect.top = Math.min(rect.top, elementRect.top || rect.top);
-            rect.left = Math.min(rect.left, elementRect.left || rect.left);
-            rect.bottom = Math.max(rect.bottom, elementRect.bottom || rect.bottom);
-            rect.right = Math.max(rect.right, elementRect.right || rect.right);
-        });
+        if (ghostElem) {
+            console.log('ghostElem');
+            // const firstValue = SelectedSet.rects.entries().next()
+            // let element: DSBoundingRect | undefined = undefined
+            // if (firstValue) {
+            //   element = firstValue.value
+            // }
+            rect.top = Math.min(rect.top, element.top || rect.top);
+            rect.left = Math.min(rect.left, element.left || rect.left);
+            rect.bottom = Math.max(rect.bottom, element.bottom || rect.bottom);
+            rect.right = Math.max(rect.right, element.right || rect.right);
+        }
+        else {
+            // console.log(SelectedSet.rects)
+            SelectedSet.rects.forEach((elementRect) => {
+                rect.top = Math.min(rect.top, elementRect.top || rect.top);
+                rect.left = Math.min(rect.left, elementRect.left || rect.left);
+                rect.bottom = Math.max(rect.bottom, elementRect.bottom || rect.bottom);
+                rect.right = Math.max(rect.right, elementRect.right || rect.right);
+            });
+        }
+        // console.log(rect)
         rect.height = rect.bottom - rect.top;
         rect.width = rect.right - rect.left;
         return rect;
@@ -1876,6 +1915,7 @@
         DS;
         PS;
         Settings;
+        // private _draggingElement: DSInputElement
         constructor({ DS, PS }) {
             this.DS = DS;
             this.PS = PS;
@@ -1942,7 +1982,18 @@
         get boundingRect() {
             if (this._boundingRect)
                 return this._boundingRect;
-            this._boundingRect = getSelectionRect(this.DS.SelectedSet);
+            // this._draggingElement = document.createElement('div')
+            // this._draggingElement.classList.add('drag-ghost')
+            // Object.assign(this._draggingElement.style, {
+            //   position: 'absolute',
+            //   width: '100px', // Пример ширины
+            //   height: '100px', // Пример высоты
+            //   backgroundColor: 'rgba(0, 0, 255, 0.5)', // Синий полупрозрачный цвет
+            // })
+            // document.body.appendChild(this._draggingElement)
+            this._boundingRect = getSelectionRect(this.DS.SelectedSet
+            // this._draggingElement
+            );
             // since elements can be moved, we need to update the rects every X ms
             if (this._timeout)
                 clearTimeout(this._timeout);
