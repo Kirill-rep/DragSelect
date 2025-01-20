@@ -438,7 +438,7 @@
     };
 
     /** Moves the element in a posDirection */
-    const moveElement = ({ element, posDirection, useTransform }) => {
+    const moveElement = ({ element, posDirection, useTransform, }) => {
         const elementPos = getStylePosition(element, useTransform);
         const newPos = calcVect(elementPos, '+', posDirection);
         setStylePosition(element, newPos, useTransform);
@@ -448,27 +448,22 @@
      * Modify direction value so that the rect of draggable elements
      * does not exceed the boundaries of container rect
      */
-    const limitDirection = ({ containerRect, selectionRect, direction, scrollAmount }) => {
-        const delta = {
-            top: containerRect.top - selectionRect.top + scrollAmount.y,
-            left: containerRect.left - selectionRect.left + scrollAmount.x,
-            bottom: containerRect.bottom - selectionRect.bottom + scrollAmount.y,
-            right: containerRect.right - selectionRect.right + scrollAmount.x,
-        };
-        if (direction.x === 0 && direction.y === 0)
-            return direction;
-        if (direction.y < 0)
-            direction.y = Math.max(direction.y, delta.top);
-        if (direction.x < 0)
-            direction.x = Math.max(direction.x, delta.left);
-        if (direction.y > 0)
-            direction.y = Math.min(direction.y, delta.bottom);
-        if (direction.x > 0)
-            direction.x = Math.min(direction.x, delta.right);
-        selectionRect.top += direction.y;
-        selectionRect.bottom += direction.y;
-        selectionRect.left += direction.x;
-        selectionRect.right += direction.x;
+    const limitDirection = ({ containerRect, selectionRect, direction, scrollAmount, }) => {
+        // const delta = {
+        //   top: containerRect.top - selectionRect.top + scrollAmount.y,
+        //   left: containerRect.left - selectionRect.left + scrollAmount.x,
+        //   bottom: containerRect.bottom - selectionRect.bottom + scrollAmount.y,
+        //   right: containerRect.right - selectionRect.right + scrollAmount.x,
+        // }
+        // if(direction.x === 0 && direction.y === 0) return direction
+        // if (direction.y < 0) direction.y = Math.max(direction.y, delta.top)
+        // if (direction.x < 0) direction.x = Math.max(direction.x, delta.left)
+        // if (direction.y > 0) direction.y = Math.min(direction.y, delta.bottom)
+        // if (direction.x > 0) direction.x = Math.min(direction.x, delta.right)
+        // selectionRect.top += direction.y;
+        // selectionRect.bottom += direction.y;
+        // selectionRect.left += direction.x;
+        // selectionRect.right += direction.x;
         return direction;
     };
 
@@ -620,7 +615,6 @@
                 elements: this._elements,
                 direction: posDirection,
             });
-            console.log(this._draggingElement);
             moveElement({
                 element: this._draggingElement ? this._draggingElement : elements[0],
                 posDirection: direction,

@@ -211,7 +211,6 @@ export default class Drag<E extends DSInputElement> {
       elements: this._elements,
       direction: posDirection,
     })
-    console.log(this._draggingElement)
 
     moveElement({
       element: this._draggingElement ? this._draggingElement : elements[0],
