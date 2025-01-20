@@ -83,7 +83,6 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   get rects() {
     if (this._rects) return this._rects
     this._rects = new Map()
-    // this._rects.set()
     this.forEach(
       (element) => this._rects?.set(element, element.getBoundingClientRect())
     )

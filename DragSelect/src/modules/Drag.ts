@@ -140,18 +140,16 @@ export default class Drag<E extends DSInputElement> {
     this._elements = this.DS.getSelection()
     this._selectionRect = this.DS.Selection.boundingRect
     this.handleZIndex(true)
-    // console.log(this._elements[0])
     if (!this._draggingElement) {
       this._draggingElement = document.createElement('div')
       this._draggingElement.classList.add('drag-ghost')
-      Object.assign(this._draggingElement.style, {
-        position: 'absolute',
-        width: '100px',
-        height: '100px',
-        backgroundColor: 'rgba(0, 0, 255, 0.5)',
-        left: `${this.DS.getCurrentCursorPosition().x}px`,
-        top: `${this.DS.getCurrentCursorPosition().y}px`,
-        zIndex: '100000',
+      const multipleItems = this._elements.length > 1 ? true : false
+      const styles = multipleItems
+        ? this.DS.Style.stylesItems
+        : this.DS.Style.stylesItem
+      Object.assign(this._draggingElement.style, styles, {
+        left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
+        top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
       })
       document.body.appendChild(this._draggingElement)
     }
@@ -190,7 +188,6 @@ export default class Drag<E extends DSInputElement> {
       scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
       selectionRect: this._selectionRect,
     })
-    // console.log(this._selectionRect)
     this.moveElements(posDirection)
   }
 

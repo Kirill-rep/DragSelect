@@ -14,7 +14,6 @@ export default class Selection<E extends DSInputElement> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
-  // private _draggingElement: DSInputElement
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
@@ -103,19 +102,8 @@ export default class Selection<E extends DSInputElement> {
 
   get boundingRect() {
     if (this._boundingRect) return this._boundingRect
-    // this._draggingElement = document.createElement('div')
-    // this._draggingElement.classList.add('drag-ghost')
-    // Object.assign(this._draggingElement.style, {
-    //   position: 'absolute',
-    //   width: '100px', // Пример ширины
-    //   height: '100px', // Пример высоты
-    //   backgroundColor: 'rgba(0, 0, 255, 0.5)', // Синий полупрозрачный цвет
-    // })
-    // document.body.appendChild(this._draggingElement)
-    this._boundingRect = getSelectionRect(
-      this.DS.SelectedSet
-      // this._draggingElement
-    )
+
+    this._boundingRect = getSelectionRect(this.DS.SelectedSet)
 
     // since elements can be moved, we need to update the rects every X ms
     if (this._timeout) clearTimeout(this._timeout)

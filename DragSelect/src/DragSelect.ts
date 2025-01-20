@@ -45,6 +45,8 @@ import {
   type DSInputElement,
   type Settings,
   type Vect2,
+  CustomStyles,
+  CustomStyle,
 } from './types'
 import { IsCollision, isCollision } from './methods/isCollision'
 import {
@@ -78,6 +80,7 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
   public DropZones: DropZones<E>
   public Interaction: Interaction<E>
   public stopped: boolean
+  public Style: CustomStyles
 
   constructor(settings: Settings<E>) {
     this.stopped = false
@@ -119,6 +122,7 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
 
     this.PubSub.subscribe('Interaction:end', () => (this.continue = false))
     this.PubSub.subscribe('DS:end', ({ items }) => (this.continue = false))
+    this.Style = {}
 
     this.start()
   }
@@ -338,6 +342,14 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
         isDragging: this.Interaction.isDragging,
       })
     return els
+  }
+
+  public addStyles(
+    stylesItem: Partial<CustomStyle>,
+    stylesItems: Partial<CustomStyle>
+  ) {
+    this.Style.stylesItem = stylesItem
+    this.Style.stylesItems = stylesItems
   }
 
   /** Gets all nodes that can potentially be selected */

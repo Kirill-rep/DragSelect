@@ -451,6 +451,11 @@ interface DSBoundingRect extends DSBoundingRectBase {
     width: number;
     height: number;
 }
+interface CustomStyles {
+    stylesItem?: Partial<CustomStyle>;
+    stylesItems?: Partial<CustomStyle>;
+}
+type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>;
 type DSDragKeys = {
     up: Array<string>;
     down: Array<string>;
@@ -796,6 +801,7 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
     DropZones: DropZones<E>;
     Interaction: Interaction<E>;
     stopped: boolean;
+    Style: CustomStyles;
     constructor(settings: Settings<E>);
     static isCollision: IsCollision;
     /** Subscribe to events */
@@ -874,6 +880,7 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
      * @return the added element(s)
      */
     addSelectables(elements: E | E[], addToSelection?: boolean, triggerCallback?: boolean): E[];
+    addStyles(stylesItem: Partial<CustomStyle>, stylesItems: Partial<CustomStyle>): void;
     /** Gets all nodes that can potentially be selected */
     getSelectables: () => E[];
     /**
@@ -913,4 +920,4 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
 
 type DSPubCallback<T extends keyof DSPublicPublish<E>, E extends DSInputElement = DSInputElement> = DSCallback<DSPublishMappings<E>[T]>;
 
-export { type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type Settings, type Vect2, DragSelect as default };
+export { type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type Settings, type Vect2, DragSelect as default };

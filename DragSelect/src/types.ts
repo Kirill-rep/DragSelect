@@ -1,6 +1,4 @@
-import {
-  type DSPublicPublishAdditionalEventData,
-} from './methods/subscriberAliases'
+import { type DSPublicPublishAdditionalEventData } from './methods/subscriberAliases'
 import { DSAreaPublishEventData, DSAreaPublishEventNames } from './modules/Area'
 import {
   DSInteractionPublishEventData,
@@ -181,6 +179,12 @@ export interface DSBoundingRect extends DSBoundingRectBase {
   width: number
   height: number
 }
+export interface CustomStyles {
+  stylesItem?: Partial<CustomStyle>
+  stylesItems?: Partial<CustomStyle>
+}
+
+export type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>
 
 export type DSDragKeys = {
   up: Array<string>

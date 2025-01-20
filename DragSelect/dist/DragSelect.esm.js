@@ -557,18 +557,16 @@ class Drag {
         this._elements = this.DS.getSelection();
         this._selectionRect = this.DS.Selection.boundingRect;
         this.handleZIndex(true);
-        // console.log(this._elements[0])
         if (!this._draggingElement) {
             this._draggingElement = document.createElement('div');
             this._draggingElement.classList.add('drag-ghost');
-            Object.assign(this._draggingElement.style, {
-                position: 'absolute',
-                width: '100px',
-                height: '100px',
-                backgroundColor: 'rgba(0, 0, 255, 0.5)',
-                left: `${this.DS.getCurrentCursorPosition().x}px`,
-                top: `${this.DS.getCurrentCursorPosition().y}px`,
-                zIndex: '100000',
+            const multipleItems = this._elements.length > 1 ? true : false;
+            const styles = multipleItems
+                ? this.DS.Style.stylesItems
+                : this.DS.Style.stylesItem;
+            Object.assign(this._draggingElement.style, styles, {
+                left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
+                top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
             });
             document.body.appendChild(this._draggingElement);
         }
@@ -595,7 +593,6 @@ class Drag {
             scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
             selectionRect: this._selectionRect,
         });
-        // console.log(this._selectionRect)
         this.moveElements(posDirection);
     };
     handleZIndex = (add) => {
@@ -1661,7 +1658,6 @@ class SelectedSet extends Set {
         if (this._rects)
             return this._rects;
         this._rects = new Map();
-        // this._rects.set()
         this.forEach((element) => this._rects?.set(element, element.getBoundingClientRect()));
         // since elements can be moved, we need to update the rects every X ms
         if (this._timeout)
@@ -1858,7 +1854,7 @@ const handleUnSelection = ({ element, force, SelectedSet, PrevSelectedSet, hover
 
 // @TODO: calculate the difference in all directions based on the mouse position! (since the selection square ratio won’t change we don’t have to re-calculate and re-fetch the position of every element in the square during drag)
 /** Returns the compound bounding rect of multiple elements */
-const getSelectionRect = (SelectedSet, ghostElem) => {
+const getSelectionRect = (SelectedSet) => {
     const rect = {
         top: Number.POSITIVE_INFINITY,
         left: Number.POSITIVE_INFINITY,
@@ -1867,28 +1863,12 @@ const getSelectionRect = (SelectedSet, ghostElem) => {
         width: Number.NEGATIVE_INFINITY,
         height: Number.NEGATIVE_INFINITY,
     };
-    if (ghostElem) {
-        console.log('ghostElem');
-        // const firstValue = SelectedSet.rects.entries().next()
-        // let element: DSBoundingRect | undefined = undefined
-        // if (firstValue) {
-        //   element = firstValue.value
-        // }
-        rect.top = Math.min(rect.top, element.top || rect.top);
-        rect.left = Math.min(rect.left, element.left || rect.left);
-        rect.bottom = Math.max(rect.bottom, element.bottom || rect.bottom);
-        rect.right = Math.max(rect.right, element.right || rect.right);
-    }
-    else {
-        // console.log(SelectedSet.rects)
-        SelectedSet.rects.forEach((elementRect) => {
-            rect.top = Math.min(rect.top, elementRect.top || rect.top);
-            rect.left = Math.min(rect.left, elementRect.left || rect.left);
-            rect.bottom = Math.max(rect.bottom, elementRect.bottom || rect.bottom);
-            rect.right = Math.max(rect.right, elementRect.right || rect.right);
-        });
-    }
-    // console.log(rect)
+    SelectedSet.rects.forEach((elementRect) => {
+        rect.top = Math.min(rect.top, elementRect.top || rect.top);
+        rect.left = Math.min(rect.left, elementRect.left || rect.left);
+        rect.bottom = Math.max(rect.bottom, elementRect.bottom || rect.bottom);
+        rect.right = Math.max(rect.right, elementRect.right || rect.right);
+    });
     rect.height = rect.bottom - rect.top;
     rect.width = rect.right - rect.left;
     return rect;
@@ -1901,7 +1881,6 @@ class Selection {
     DS;
     PS;
     Settings;
-    // private _draggingElement: DSInputElement
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
@@ -1968,18 +1947,7 @@ class Selection {
     get boundingRect() {
         if (this._boundingRect)
             return this._boundingRect;
-        // this._draggingElement = document.createElement('div')
-        // this._draggingElement.classList.add('drag-ghost')
-        // Object.assign(this._draggingElement.style, {
-        //   position: 'absolute',
-        //   width: '100px', // Пример ширины
-        //   height: '100px', // Пример высоты
-        //   backgroundColor: 'rgba(0, 0, 255, 0.5)', // Синий полупрозрачный цвет
-        // })
-        // document.body.appendChild(this._draggingElement)
-        this._boundingRect = getSelectionRect(this.DS.SelectedSet
-        // this._draggingElement
-        );
+        this._boundingRect = getSelectionRect(this.DS.SelectedSet);
         // since elements can be moved, we need to update the rects every X ms
         if (this._timeout)
             clearTimeout(this._timeout);
@@ -2450,6 +2418,7 @@ class DragSelect {
     DropZones;
     Interaction;
     stopped;
+    Style;
     constructor(settings) {
         this.stopped = false;
         this.PubSub = new PubSub({ DS: this });
@@ -2479,6 +2448,7 @@ class DragSelect {
         subscriberAliases({ DS: this, PS: this.PubSub });
         this.PubSub.subscribe('Interaction:end', () => (this.continue = false));
         this.PubSub.subscribe('DS:end', ({ items }) => (this.continue = false));
+        this.Style = {};
         this.start();
     }
     // Useful methods for the user
@@ -2643,6 +2613,10 @@ class DragSelect {
                 isDragging: this.Interaction.isDragging,
             });
         return els;
+    }
+    addStyles(stylesItem, stylesItems) {
+        this.Style.stylesItem = stylesItem;
+        this.Style.stylesItems = stylesItems;
     }
     /** Gets all nodes that can potentially be selected */
     getSelectables = () => this.SelectableSet.elements;
