@@ -551,7 +551,6 @@ class Drag {
     start = ({ isDragging, isDraggingKeyboard, }) => {
         if (!isDragging || isDraggingKeyboard)
             return;
-        console.log('start');
         this._prevCursorPos = undefined;
         this._prevScrollPos = undefined;
         this._elements = this.DS.getSelection();
@@ -568,7 +567,6 @@ class Drag {
                 left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
                 top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
             });
-            document.body.appendChild(this._draggingElement);
         }
     };
     stop = () => {
@@ -578,7 +576,6 @@ class Drag {
         this._elements = [];
         this._draggingElement?.remove();
         this._draggingElement = null;
-        console.log('stop');
     };
     update = ({ isDragging, isDraggingKeyboard, }) => {
         if (!isDragging ||
@@ -586,6 +583,9 @@ class Drag {
             isDraggingKeyboard ||
             this.DS.continue)
             return;
+        if (!document.querySelector('.drag-ghost') && this._draggingElement) {
+            document.body.appendChild(this._draggingElement);
+        }
         let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff);
         posDirection = limitDirection({
             direction: posDirection,
