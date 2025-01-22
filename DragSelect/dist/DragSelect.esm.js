@@ -469,6 +469,8 @@ class Drag {
     _dragKeysFlat = [];
     _selectionRect = vect2rect(num2vect(0));
     _draggingElement = null;
+    _divElementOne = null;
+    _divElementTwo = null;
     DS;
     PS;
     Settings;
@@ -559,14 +561,26 @@ class Drag {
         if (!this._draggingElement) {
             this._draggingElement = document.createElement('div');
             this._draggingElement.classList.add('drag-ghost');
+            this._divElementOne = document.createElement('div');
+            this._divElementTwo = document.createElement('div');
             const multipleItems = this._elements.length > 1 ? true : false;
+            const textOne = this.DS.Style.textOne;
+            const textTwo = this.DS.Style.textTwo;
             const styles = multipleItems
                 ? this.DS.Style.stylesItems
                 : this.DS.Style.stylesItem;
+            const stylesDivOne = this.DS.Style.stylesDivOne;
+            const stylesDivTwo = multipleItems
+                ? this.DS.Style.stylesDivTwoItems
+                : this.DS.Style.stylesDivTwo;
             Object.assign(this._draggingElement.style, styles, {
                 left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
                 top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
             });
+            Object.assign(this._divElementOne.style, stylesDivOne);
+            Object.assign(this._divElementTwo.style, stylesDivTwo);
+            if (textOne && textTwo)
+                this._divElementTwo.textContent = multipleItems ? textTwo : textOne;
         }
     };
     stop = () => {
@@ -585,6 +599,10 @@ class Drag {
             return;
         if (!document.querySelector('.drag-ghost') && this._draggingElement) {
             document.body.appendChild(this._draggingElement);
+            if (this._divElementOne)
+                this._draggingElement.appendChild(this._divElementOne);
+            if (this._divElementTwo)
+                this._draggingElement.appendChild(this._divElementTwo);
         }
         let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff);
         posDirection = limitDirection({
@@ -2614,9 +2632,14 @@ class DragSelect {
             });
         return els;
     }
-    addStyles(stylesItem, stylesItems) {
+    addStyles(stylesItem, stylesItems, stylesDivOne, stylesDivTwo, stylesDivTwoItems, textOne, textTwo) {
         this.Style.stylesItem = stylesItem;
         this.Style.stylesItems = stylesItems;
+        this.Style.stylesDivOne = stylesDivOne;
+        this.Style.stylesDivTwo = stylesDivTwo;
+        this.Style.stylesDivTwoItems = stylesDivTwoItems;
+        this.Style.textOne = textOne;
+        this.Style.textTwo = textTwo;
     }
     /** Gets all nodes that can potentially be selected */
     getSelectables = () => this.SelectableSet.elements;

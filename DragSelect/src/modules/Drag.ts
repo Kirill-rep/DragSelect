@@ -15,6 +15,9 @@ export default class Drag<E extends DSInputElement> {
   private _dragKeysFlat: string[] = []
   private _selectionRect: DSBoundingRect = vect2rect(num2vect(0))
   private _draggingElement: DSInputElement | null = null
+  private _divElementOne: DSInputElement | null = null
+  private _divElementTwo: DSInputElement | null = null
+
   DS: DragSelect<E>
   PS: PubSub<E>
   Settings: DSSettings<E>
@@ -142,14 +145,29 @@ export default class Drag<E extends DSInputElement> {
     if (!this._draggingElement) {
       this._draggingElement = document.createElement('div')
       this._draggingElement.classList.add('drag-ghost')
+      this._divElementOne = document.createElement('div')
+      this._divElementTwo = document.createElement('div')
+
       const multipleItems = this._elements.length > 1 ? true : false
+      const textOne = this.DS.Style.textOne
+      const textTwo = this.DS.Style.textTwo
+
       const styles = multipleItems
         ? this.DS.Style.stylesItems
         : this.DS.Style.stylesItem
+      const stylesDivOne = this.DS.Style.stylesDivOne
+      const stylesDivTwo = multipleItems
+        ? this.DS.Style.stylesDivTwoItems
+        : this.DS.Style.stylesDivTwo
+
       Object.assign(this._draggingElement.style, styles, {
         left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
         top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
       })
+      Object.assign(this._divElementOne.style, stylesDivOne)
+      Object.assign(this._divElementTwo.style, stylesDivTwo)
+      if (textOne && textTwo)
+        this._divElementTwo.textContent = multipleItems ? textTwo : textOne
     }
   }
 
@@ -178,6 +196,10 @@ export default class Drag<E extends DSInputElement> {
       return
     if (!document.querySelector('.drag-ghost') && this._draggingElement) {
       document.body.appendChild(this._draggingElement)
+      if (this._divElementOne)
+        this._draggingElement.appendChild(this._divElementOne)
+      if (this._divElementTwo)
+        this._draggingElement.appendChild(this._divElementTwo)
     }
     let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff)
     posDirection = limitDirection({

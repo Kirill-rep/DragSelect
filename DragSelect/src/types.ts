@@ -182,6 +182,11 @@ export interface DSBoundingRect extends DSBoundingRectBase {
 export interface CustomStyles {
   stylesItem?: Partial<CustomStyle>
   stylesItems?: Partial<CustomStyle>
+  stylesDivOne?: CSSStyleDeclaration
+  stylesDivTwo?: CSSStyleDeclaration
+  stylesDivTwoItems?: CSSStyleDeclaration
+  textOne?: string
+  textTwo?: string
 }
 
 export type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>

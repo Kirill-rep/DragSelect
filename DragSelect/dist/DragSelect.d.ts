@@ -454,6 +454,11 @@ interface DSBoundingRect extends DSBoundingRectBase {
 interface CustomStyles {
     stylesItem?: Partial<CustomStyle>;
     stylesItems?: Partial<CustomStyle>;
+    stylesDivOne?: CSSStyleDeclaration;
+    stylesDivTwo?: CSSStyleDeclaration;
+    stylesDivTwoItems?: CSSStyleDeclaration;
+    textOne?: string;
+    textTwo?: string;
 }
 type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>;
 type DSDragKeys = {
@@ -580,6 +585,8 @@ declare class Drag<E extends DSInputElement> {
     private _dragKeysFlat;
     private _selectionRect;
     private _draggingElement;
+    private _divElementOne;
+    private _divElementTwo;
     DS: DragSelect<E>;
     PS: PubSub<E>;
     Settings: DSSettings<E>;
@@ -880,7 +887,7 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
      * @return the added element(s)
      */
     addSelectables(elements: E | E[], addToSelection?: boolean, triggerCallback?: boolean): E[];
-    addStyles(stylesItem: Partial<CustomStyle>, stylesItems: Partial<CustomStyle>): void;
+    addStyles(stylesItem: Partial<CustomStyle>, stylesItems: Partial<CustomStyle>, stylesDivOne?: CSSStyleDeclaration, stylesDivTwo?: CSSStyleDeclaration, stylesDivTwoItems?: CSSStyleDeclaration, textOne?: string, textTwo?: string): void;
     /** Gets all nodes that can potentially be selected */
     getSelectables: () => E[];
     /**
