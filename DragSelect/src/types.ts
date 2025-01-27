@@ -180,13 +180,17 @@ export interface DSBoundingRect extends DSBoundingRectBase {
   height: number
 }
 export interface CustomStyles {
-  stylesItem?: Partial<CustomStyle>
-  stylesItems?: Partial<CustomStyle>
-  stylesDivOne?: CSSStyleDeclaration
-  stylesDivTwo?: CSSStyleDeclaration
-  stylesDivTwoItems?: CSSStyleDeclaration
+  stylesItem: DraggableStyles
   textOne?: string
   textTwo?: string
+}
+
+export interface DraggableStyles {
+  singleElem: Partial<CustomStyle>
+  manyElem?: Partial<CustomStyle>
+  fisrtDivSingleEl?: Partial<CSSStyleDeclaration>
+  secondDivSingleEl?: Partial<CSSStyleDeclaration>
+  divManyEl?: Partial<CSSStyleDeclaration>
 }
 
 export type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>

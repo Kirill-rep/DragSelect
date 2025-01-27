@@ -452,13 +452,16 @@ interface DSBoundingRect extends DSBoundingRectBase {
     height: number;
 }
 interface CustomStyles {
-    stylesItem?: Partial<CustomStyle>;
-    stylesItems?: Partial<CustomStyle>;
-    stylesDivOne?: CSSStyleDeclaration;
-    stylesDivTwo?: CSSStyleDeclaration;
-    stylesDivTwoItems?: CSSStyleDeclaration;
+    stylesItem: DraggableStyles;
     textOne?: string;
     textTwo?: string;
+}
+interface DraggableStyles {
+    singleElem: Partial<CustomStyle>;
+    manyElem?: Partial<CustomStyle>;
+    fisrtDivSingleEl?: Partial<CSSStyleDeclaration>;
+    secondDivSingleEl?: Partial<CSSStyleDeclaration>;
+    divManyEl?: Partial<CSSStyleDeclaration>;
 }
 type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>;
 type DSDragKeys = {
@@ -887,7 +890,7 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
      * @return the added element(s)
      */
     addSelectables(elements: E | E[], addToSelection?: boolean, triggerCallback?: boolean): E[];
-    addStyles(stylesItem: Partial<CustomStyle>, stylesItems: Partial<CustomStyle>, stylesDivOne?: CSSStyleDeclaration, stylesDivTwo?: CSSStyleDeclaration, stylesDivTwoItems?: CSSStyleDeclaration, textOne?: string, textTwo?: string): void;
+    addStyles(stylesItem: DraggableStyles, textOne?: string, textTwo?: string): void;
     /** Gets all nodes that can potentially be selected */
     getSelectables: () => E[];
     /**
@@ -927,4 +930,4 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
 
 type DSPubCallback<T extends keyof DSPublicPublish<E>, E extends DSInputElement = DSInputElement> = DSCallback<DSPublishMappings<E>[T]>;
 
-export { type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type Settings, type Vect2, DragSelect as default };
+export { type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type DraggableStyles, type Settings, type Vect2, DragSelect as default };

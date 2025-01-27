@@ -153,12 +153,12 @@ export default class Drag<E extends DSInputElement> {
       const textTwo = this.DS.Style.textTwo
 
       const styles = multipleItems
-        ? this.DS.Style.stylesItems
-        : this.DS.Style.stylesItem
-      const stylesDivOne = this.DS.Style.stylesDivOne
+        ? this.DS.Style.stylesItem.manyElem
+        : this.DS.Style.stylesItem.singleElem
+      const stylesDivOne = this.DS.Style.stylesItem.fisrtDivSingleEl
       const stylesDivTwo = multipleItems
-        ? this.DS.Style.stylesDivTwoItems
-        : this.DS.Style.stylesDivTwo
+        ? this.DS.Style.stylesItem.divManyEl
+        : this.DS.Style.stylesItem.secondDivSingleEl
 
       Object.assign(this._draggingElement.style, styles, {
         left: `${this.DS.getCurrentCursorPosition().x - 14}px`,

@@ -47,6 +47,7 @@ import {
   type Vect2,
   CustomStyles,
   CustomStyle,
+  DraggableStyles,
 } from './types'
 import { IsCollision, isCollision } from './methods/isCollision'
 import {
@@ -122,7 +123,9 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
 
     this.PubSub.subscribe('Interaction:end', () => (this.continue = false))
     this.PubSub.subscribe('DS:end', ({ items }) => (this.continue = false))
-    this.Style = {}
+    this.Style = {
+      stylesItem: {} as DraggableStyles,
+    }
 
     this.start()
   }
@@ -345,19 +348,15 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
   }
 
   public addStyles(
-    stylesItem: Partial<CustomStyle>,
-    stylesItems: Partial<CustomStyle>,
-    stylesDivOne?: CSSStyleDeclaration,
-    stylesDivTwo?: CSSStyleDeclaration,
-    stylesDivTwoItems?: CSSStyleDeclaration,
+    stylesItem: DraggableStyles,
     textOne?: string,
     textTwo?: string
   ) {
-    this.Style.stylesItem = stylesItem
-    this.Style.stylesItems = stylesItems
-    this.Style.stylesDivOne = stylesDivOne
-    this.Style.stylesDivTwo = stylesDivTwo
-    this.Style.stylesDivTwoItems = stylesDivTwoItems
+    this.Style.stylesItem.singleElem = stylesItem.singleElem
+    this.Style.stylesItem.manyElem = stylesItem.manyElem
+    this.Style.stylesItem.fisrtDivSingleEl = stylesItem.fisrtDivSingleEl
+    this.Style.stylesItem.secondDivSingleEl = stylesItem.secondDivSingleEl
+    this.Style.stylesItem.divManyEl = stylesItem.divManyEl
     this.Style.textOne = textOne
     this.Style.textTwo = textTwo
   }

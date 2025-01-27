@@ -573,12 +573,12 @@
                 const textOne = this.DS.Style.textOne;
                 const textTwo = this.DS.Style.textTwo;
                 const styles = multipleItems
-                    ? this.DS.Style.stylesItems
-                    : this.DS.Style.stylesItem;
-                const stylesDivOne = this.DS.Style.stylesDivOne;
+                    ? this.DS.Style.stylesItem.manyElem
+                    : this.DS.Style.stylesItem.singleElem;
+                const stylesDivOne = this.DS.Style.stylesItem.fisrtDivSingleEl;
                 const stylesDivTwo = multipleItems
-                    ? this.DS.Style.stylesDivTwoItems
-                    : this.DS.Style.stylesDivTwo;
+                    ? this.DS.Style.stylesItem.divManyEl
+                    : this.DS.Style.stylesItem.secondDivSingleEl;
                 Object.assign(this._draggingElement.style, styles, {
                     left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
                     top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
@@ -2472,7 +2472,9 @@
             subscriberAliases({ DS: this, PS: this.PubSub });
             this.PubSub.subscribe('Interaction:end', () => (this.continue = false));
             this.PubSub.subscribe('DS:end', ({ items }) => (this.continue = false));
-            this.Style = {};
+            this.Style = {
+                stylesItem: {},
+            };
             this.start();
         }
         // Useful methods for the user
@@ -2638,12 +2640,12 @@
                 });
             return els;
         }
-        addStyles(stylesItem, stylesItems, stylesDivOne, stylesDivTwo, stylesDivTwoItems, textOne, textTwo) {
-            this.Style.stylesItem = stylesItem;
-            this.Style.stylesItems = stylesItems;
-            this.Style.stylesDivOne = stylesDivOne;
-            this.Style.stylesDivTwo = stylesDivTwo;
-            this.Style.stylesDivTwoItems = stylesDivTwoItems;
+        addStyles(stylesItem, textOne, textTwo) {
+            this.Style.stylesItem.singleElem = stylesItem.singleElem;
+            this.Style.stylesItem.manyElem = stylesItem.manyElem;
+            this.Style.stylesItem.fisrtDivSingleEl = stylesItem.fisrtDivSingleEl;
+            this.Style.stylesItem.secondDivSingleEl = stylesItem.secondDivSingleEl;
+            this.Style.stylesItem.divManyEl = stylesItem.divManyEl;
             this.Style.textOne = textOne;
             this.Style.textTwo = textTwo;
         }
