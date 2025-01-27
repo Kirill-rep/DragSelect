@@ -59,6 +59,10 @@ export default class Area<E extends DSInputElement> {
     borderLeftWidth: CSSStyleDeclaration['borderLeftWidth']
     borderRightWidth: CSSStyleDeclaration['borderRightWidth']
     position: CSSStyleDeclaration['position']
+    paddingTop: CSSStyleDeclaration['paddingTop']
+    paddingRight: CSSStyleDeclaration['paddingRight']
+    paddingBottom: CSSStyleDeclaration['paddingBottom']
+    paddingLeft: CSSStyleDeclaration['paddingLeft']
   }
   private _computedBorder?: DSEdgesObj
   private _rect?: DSBoundingRect
@@ -174,6 +178,16 @@ export default class Area<E extends DSInputElement> {
     }
   }
 
+  public get computedPadding() {
+    if (this._computedBorder) return this._computedBorder
+    return {
+      top: parseInt(this.computedStyle.paddingTop),
+      bottom: parseInt(this.computedStyle.paddingBottom),
+      left: parseInt(this.computedStyle.paddingLeft),
+      right: parseInt(this.computedStyle.paddingRight),
+    }
+  }
+
   /** The computed styles from the element (caches result) */
   private get computedStyle() {
     if (this._computedStyle) return this._computedStyle
@@ -189,6 +203,10 @@ export default class Area<E extends DSInputElement> {
       borderLeftWidth: tempStyles.borderLeftWidth,
       borderRightWidth: tempStyles.borderRightWidth,
       position: tempStyles.position,
+      paddingTop: tempStyles.paddingTop,
+      paddingRight: tempStyles.paddingRight,
+      paddingBottom: tempStyles.paddingBottom,
+      paddingLeft: tempStyles.paddingLeft,
     })
   }
 

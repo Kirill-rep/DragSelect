@@ -274,6 +274,16 @@
                 right: parseInt(this.computedStyle.borderRightWidth),
             };
         }
+        get computedPadding() {
+            if (this._computedBorder)
+                return this._computedBorder;
+            return {
+                top: parseInt(this.computedStyle.paddingTop),
+                bottom: parseInt(this.computedStyle.paddingBottom),
+                left: parseInt(this.computedStyle.paddingLeft),
+                right: parseInt(this.computedStyle.paddingRight),
+            };
+        }
         /** The computed styles from the element (caches result) */
         get computedStyle() {
             if (this._computedStyle)
@@ -289,6 +299,10 @@
                 borderLeftWidth: tempStyles.borderLeftWidth,
                 borderRightWidth: tempStyles.borderRightWidth,
                 position: tempStyles.position,
+                paddingTop: tempStyles.paddingTop,
+                paddingRight: tempStyles.paddingRight,
+                paddingBottom: tempStyles.paddingBottom,
+                paddingLeft: tempStyles.paddingLeft,
             });
         }
         /** The element rect (caches result) (without scrollbar or borders) */
@@ -2058,11 +2072,12 @@
             this._rect = undefined;
             const rect = this.DS.Area.rect;
             const border = this.DS.Area.computedBorder;
+            const padding = this.DS.Area.computedPadding;
             const { style } = this.HTMLNode;
-            const top = `${rect.top + border.top}px`;
-            const left = `${rect.left + border.left}px`;
-            const width = `${rect.width}px`;
-            const height = `${rect.height}px`;
+            const top = `${rect.top + border.top + padding.top}px`;
+            const left = `${rect.left + border.left + padding.left}px`;
+            const width = `${rect.width - padding.left - padding.right}px`;
+            const height = `${rect.height - padding.top - padding.bottom}px`;
             if (style.top !== top)
                 style.top = top;
             if (style.left !== left)

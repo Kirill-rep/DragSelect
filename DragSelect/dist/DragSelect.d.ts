@@ -573,6 +573,7 @@ declare class Area<E extends DSInputElement> {
     get HTMLNode(): DSArea;
     /** The computed border from the element (caches result) */
     get computedBorder(): DSEdgesObj;
+    get computedPadding(): DSEdgesObj;
     /** The computed styles from the element (caches result) */
     private get computedStyle();
     /** The element rect (caches result) (without scrollbar or borders) */

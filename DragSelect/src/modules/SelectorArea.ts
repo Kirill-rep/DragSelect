@@ -62,11 +62,13 @@ export default class SelectorArea<E extends DSInputElement> {
     this._rect = undefined
     const rect = this.DS.Area.rect
     const border = this.DS.Area.computedBorder
+    const padding = this.DS.Area.computedPadding
     const { style } = this.HTMLNode
-    const top = `${rect.top + border.top}px`
-    const left = `${rect.left + border.left}px`
-    const width = `${rect.width}px`
-    const height = `${rect.height}px`
+    const top = `${rect.top + border.top + padding.top}px`
+    const left = `${rect.left + border.left + padding.left}px`
+
+    const width = `${rect.width - padding.left - padding.right}px`
+    const height = `${rect.height - padding.top - padding.bottom}px`
     if (style.top !== top) style.top = top
     if (style.left !== left) style.left = left
     if (style.width !== width) style.width = width
