@@ -1,13 +1,24 @@
-import { DSBoundingRect, Vect2 } from "../types"
+import { DSBoundingRect, Vect2 } from '../types'
 
 type Params = {
   scrollAmount: Vect2
   initialPointerPos: Vect2
   pointerPos: Vect2
+  containerSize?: {
+    top: number
+    left: number
+    width: number
+    height: number
+  }
 }
 
 /** Reliably returns the exact x,y,w,h positions of the selector element */
-export const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos }: Params) => {
+export const getSelectorPosition = ({
+  scrollAmount,
+  initialPointerPos,
+  pointerPos,
+  containerSize,
+}: Params) => {
   /** check for direction
    *
    * This is quite complicated, so also quite complicated to explain. Lemme’ try:
@@ -46,29 +57,94 @@ export const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPo
    *
    * I hope that makes sense. Try stuff out and play around with variables to get a hang of it.
    */
+  if (!containerSize) return
   const selectorPos: Partial<DSBoundingRect> = {}
 
+  const relativeInitialPointerPos = {
+    x: initialPointerPos.x - containerSize.left + scrollAmount.x,
+    y: initialPointerPos.y - containerSize.top + scrollAmount.y,
+  }
+
+  const relativePointerPos = {
+    x: pointerPos.x - containerSize.left + scrollAmount.x,
+    y: pointerPos.y - containerSize.top + scrollAmount.y,
+  }
+
+  const clampedPointerPos = {
+    x: Math.min(Math.max(relativePointerPos.x, 0), containerSize.width),
+    y: Math.min(Math.max(relativePointerPos.y, 0), containerSize.height),
+  }
+
   // right
-  if (pointerPos.x > initialPointerPos.x - scrollAmount.x) {
+  if (clampedPointerPos.x >= relativeInitialPointerPos.x) {
     // 1.
-    selectorPos.left = initialPointerPos.x - scrollAmount.x // 2.
-    selectorPos.width = pointerPos.x - initialPointerPos.x + scrollAmount.x // 3.
+    selectorPos.left = Math.max(relativeInitialPointerPos.x, 0) // 2.
+    selectorPos.width = clampedPointerPos.x - relativeInitialPointerPos.x // 3.
     // left
   } else {
     // 1b.
-    selectorPos.left = pointerPos.x // 2b.
-    selectorPos.width = initialPointerPos.x - pointerPos.x - scrollAmount.x // 3b.
+    selectorPos.left = Math.max(clampedPointerPos.x, 0) // 2b.
+    selectorPos.width = relativeInitialPointerPos.x - clampedPointerPos.x
+    // 3b.
   }
 
   // bottom
-  if (pointerPos.y > initialPointerPos.y - scrollAmount.y) {
-    selectorPos.top = initialPointerPos.y - scrollAmount.y
-    selectorPos.height = pointerPos.y - initialPointerPos.y + scrollAmount.y
+  if (clampedPointerPos.y >= relativeInitialPointerPos.y) {
+    selectorPos.top = Math.max(relativeInitialPointerPos.y, 0)
+    selectorPos.height = clampedPointerPos.y - relativeInitialPointerPos.y
     // top
   } else {
-    selectorPos.top = pointerPos.y
-    selectorPos.height = initialPointerPos.y - pointerPos.y - scrollAmount.y
+    selectorPos.top = Math.max(clampedPointerPos.y, 0)
+    selectorPos.height = relativeInitialPointerPos.y - clampedPointerPos.y
   }
 
   return selectorPos
 }
+
+// if (!containerSize) return
+//   const selectorPos: Partial<DSBoundingRect> = {}
+
+//   const relativeInitialPointerPos = {
+//     x: initialPointerPos.x - containerSize.left,
+//     y: initialPointerPos.y - containerSize.top,
+//   }
+
+//   const relativePointerPos = {
+//     x: pointerPos.x - containerSize.left,
+//     y: pointerPos.y - containerSize.top,
+//   }
+//   // right
+//   if (relativePointerPos.x > relativeInitialPointerPos.x - scrollAmount.x) {
+//     // 1.
+//     selectorPos.left = Math.max(relativeInitialPointerPos.x - scrollAmount.x, 0) // 2.
+//     selectorPos.width = Math.min(
+//       relativePointerPos.x - relativeInitialPointerPos.x + scrollAmount.x,
+//       containerSize.width - selectorPos.left
+//     ) // 3.
+//     // left
+//   } else {
+//     // 1b.
+//     selectorPos.left = Math.max(relativePointerPos.x, 0) // 2b.
+//     selectorPos.width = Math.min(
+//       relativeInitialPointerPos.x - relativePointerPos.x - scrollAmount.x,
+//       containerSize.width - selectorPos.left
+//     ) // 3b.
+//   }
+
+//   // bottom
+//   if (relativePointerPos.y > relativeInitialPointerPos.y - scrollAmount.y) {
+//     selectorPos.top = Math.max(relativeInitialPointerPos.y - scrollAmount.y, 0)
+//     selectorPos.height = Math.min(
+//       relativePointerPos.y - relativeInitialPointerPos.y + scrollAmount.y,
+//       containerSize.height - selectorPos.top
+//     )
+//     // top
+//   } else {
+//     selectorPos.top = Math.max(relativePointerPos.y, 0)
+//     selectorPos.height = Math.min(
+//       relativeInitialPointerPos.y - relativePointerPos.y - scrollAmount.y,
+//       containerSize.height - selectorPos.top
+//     )
+//   }
+
+//   return selectorPos

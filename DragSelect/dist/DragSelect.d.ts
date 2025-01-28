@@ -463,6 +463,12 @@ interface DraggableStyles {
     secondDivSingleEl?: Partial<CSSStyleDeclaration>;
     divManyEl?: Partial<CSSStyleDeclaration>;
 }
+interface AreaSize {
+    left: number;
+    top: number;
+    height: number;
+    width: number;
+}
 type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>;
 type DSDragKeys = {
     up: Array<string>;
@@ -684,6 +690,7 @@ declare class Selector<E extends DSInputElement> {
     private DS;
     private PS;
     private Settings;
+    private ContainerSize?;
     HTMLNode: HTMLElement;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
@@ -737,6 +744,7 @@ declare class SelectorArea<E extends DSInputElement> {
     private PS;
     private Settings;
     HTMLNode: HTMLElement;
+    HTMLNodeSize?: AreaSize;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -744,6 +752,7 @@ declare class SelectorArea<E extends DSInputElement> {
     private init;
     /** Adding / Removing elements to document */
     private applyElements;
+    private clampSelectionArea;
     /** Updates the selectorAreas positions to match the areas */
     private updatePos;
     stop: (remove: boolean) => void;
@@ -931,4 +940,4 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
 
 type DSPubCallback<T extends keyof DSPublicPublish<E>, E extends DSInputElement = DSInputElement> = DSCallback<DSPublishMappings<E>[T]>;
 
-export { type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type DraggableStyles, type Settings, type Vect2, DragSelect as default };
+export { type AreaSize, type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type DraggableStyles, type Settings, type Vect2, DragSelect as default };

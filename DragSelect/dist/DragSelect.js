@@ -1718,7 +1718,7 @@
     };
 
     /** Reliably returns the exact x,y,w,h positions of the selector element */
-    const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos }) => {
+    const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos, containerSize, }) => {
         /** check for direction
          *
          * This is quite complicated, so also quite complicated to explain. Lemme’ try:
@@ -1757,31 +1757,89 @@
          *
          * I hope that makes sense. Try stuff out and play around with variables to get a hang of it.
          */
+        if (!containerSize)
+            return;
         const selectorPos = {};
+        const relativeInitialPointerPos = {
+            x: initialPointerPos.x - containerSize.left + scrollAmount.x,
+            y: initialPointerPos.y - containerSize.top + scrollAmount.y,
+        };
+        const relativePointerPos = {
+            x: pointerPos.x - containerSize.left + scrollAmount.x,
+            y: pointerPos.y - containerSize.top + scrollAmount.y,
+        };
+        const clampedPointerPos = {
+            x: Math.min(Math.max(relativePointerPos.x, 0), containerSize.width),
+            y: Math.min(Math.max(relativePointerPos.y, 0), containerSize.height),
+        };
         // right
-        if (pointerPos.x > initialPointerPos.x - scrollAmount.x) {
+        if (clampedPointerPos.x >= relativeInitialPointerPos.x) {
             // 1.
-            selectorPos.left = initialPointerPos.x - scrollAmount.x; // 2.
-            selectorPos.width = pointerPos.x - initialPointerPos.x + scrollAmount.x; // 3.
+            selectorPos.left = Math.max(relativeInitialPointerPos.x, 0); // 2.
+            selectorPos.width = clampedPointerPos.x - relativeInitialPointerPos.x; // 3.
             // left
         }
         else {
             // 1b.
-            selectorPos.left = pointerPos.x; // 2b.
-            selectorPos.width = initialPointerPos.x - pointerPos.x - scrollAmount.x; // 3b.
+            selectorPos.left = Math.max(clampedPointerPos.x, 0); // 2b.
+            selectorPos.width = relativeInitialPointerPos.x - clampedPointerPos.x;
+            // 3b.
         }
         // bottom
-        if (pointerPos.y > initialPointerPos.y - scrollAmount.y) {
-            selectorPos.top = initialPointerPos.y - scrollAmount.y;
-            selectorPos.height = pointerPos.y - initialPointerPos.y + scrollAmount.y;
+        if (clampedPointerPos.y >= relativeInitialPointerPos.y) {
+            selectorPos.top = Math.max(relativeInitialPointerPos.y, 0);
+            selectorPos.height = clampedPointerPos.y - relativeInitialPointerPos.y;
             // top
         }
         else {
-            selectorPos.top = pointerPos.y;
-            selectorPos.height = initialPointerPos.y - pointerPos.y - scrollAmount.y;
+            selectorPos.top = Math.max(clampedPointerPos.y, 0);
+            selectorPos.height = relativeInitialPointerPos.y - clampedPointerPos.y;
         }
         return selectorPos;
     };
+    // if (!containerSize) return
+    //   const selectorPos: Partial<DSBoundingRect> = {}
+    //   const relativeInitialPointerPos = {
+    //     x: initialPointerPos.x - containerSize.left,
+    //     y: initialPointerPos.y - containerSize.top,
+    //   }
+    //   const relativePointerPos = {
+    //     x: pointerPos.x - containerSize.left,
+    //     y: pointerPos.y - containerSize.top,
+    //   }
+    //   // right
+    //   if (relativePointerPos.x > relativeInitialPointerPos.x - scrollAmount.x) {
+    //     // 1.
+    //     selectorPos.left = Math.max(relativeInitialPointerPos.x - scrollAmount.x, 0) // 2.
+    //     selectorPos.width = Math.min(
+    //       relativePointerPos.x - relativeInitialPointerPos.x + scrollAmount.x,
+    //       containerSize.width - selectorPos.left
+    //     ) // 3.
+    //     // left
+    //   } else {
+    //     // 1b.
+    //     selectorPos.left = Math.max(relativePointerPos.x, 0) // 2b.
+    //     selectorPos.width = Math.min(
+    //       relativeInitialPointerPos.x - relativePointerPos.x - scrollAmount.x,
+    //       containerSize.width - selectorPos.left
+    //     ) // 3b.
+    //   }
+    //   // bottom
+    //   if (relativePointerPos.y > relativeInitialPointerPos.y - scrollAmount.y) {
+    //     selectorPos.top = Math.max(relativeInitialPointerPos.y - scrollAmount.y, 0)
+    //     selectorPos.height = Math.min(
+    //       relativePointerPos.y - relativeInitialPointerPos.y + scrollAmount.y,
+    //       containerSize.height - selectorPos.top
+    //     )
+    //     // top
+    //   } else {
+    //     selectorPos.top = Math.max(relativePointerPos.y, 0)
+    //     selectorPos.height = Math.min(
+    //       relativeInitialPointerPos.y - relativePointerPos.y - scrollAmount.y,
+    //       containerSize.height - selectorPos.top
+    //     )
+    //   }
+    //   return selectorPos
 
     /** Updates element style left, top, width, height values according to pos input object */
     var updateElementStylePos = (element, pos) => {
@@ -1800,6 +1858,7 @@
         DS;
         PS;
         Settings;
+        ContainerSize;
         HTMLNode;
         constructor({ DS, PS }) {
             this.DS = DS;
@@ -1820,7 +1879,9 @@
         attachSelector = () => {
             if (this.HTMLNode && this.DS.SelectorArea?.HTMLNode)
                 this.DS.SelectorArea.HTMLNode.removeChild(this.HTMLNode);
-            this.HTMLNode = this.Settings.selector || createSelectorElement(this.Settings.customStyles);
+            this.HTMLNode =
+                this.Settings.selector ||
+                    createSelectorElement(this.Settings.customStyles);
             this.HTMLNode.classList.add(this.Settings.selectorClass);
             if (this.HTMLNode && this.DS.SelectorArea?.HTMLNode)
                 this.DS.SelectorArea.HTMLNode.appendChild(this.HTMLNode);
@@ -1832,6 +1893,14 @@
             const pPos = PointerStore.initialValArea;
             updateElementStylePos(this.HTMLNode, vect2rect(pPos, 1));
             this.HTMLNode.style.display = 'block';
+            if (this.DS.SelectorArea.HTMLNodeSize) {
+                this.ContainerSize = {
+                    top: this.DS.SelectorArea.HTMLNodeSize.top,
+                    left: this.DS.SelectorArea.HTMLNodeSize.left,
+                    width: this.DS.SelectorArea.HTMLNodeSize.width,
+                    height: this.DS.SelectorArea.HTMLNodeSize.height,
+                };
+            }
             this._rect = undefined;
         };
         stop = () => {
@@ -1844,12 +1913,25 @@
             if (isDragging || this.DS.continue)
                 return;
             const { stores: { ScrollStore, PointerStore }, } = this.DS;
+            const { x, y } = this.DS.getCurrentCursorPosition();
+            const { x: initX, y: initY } = this.DS.getInitialCursorPosition();
+            const initPointerPos = {
+                x: initX,
+                y: initY,
+            };
+            const pointerPos = {
+                x: x + window.scrollX,
+                y: y + window.scrollY,
+            };
+            console.log(this.ContainerSize);
             const pos = getSelectorPosition({
                 scrollAmount: ScrollStore.scrollAmount,
-                initialPointerPos: PointerStore.initialValArea,
-                pointerPos: PointerStore.currentValArea,
+                initialPointerPos: initPointerPos,
+                pointerPos: pointerPos,
+                containerSize: this.ContainerSize,
             });
-            updateElementStylePos(this.HTMLNode, pos);
+            if (pos)
+                updateElementStylePos(this.HTMLNode, pos);
             this._rect = undefined;
         };
         get rect() {
@@ -2004,7 +2086,7 @@
     const createSelectorAreaElement = () => {
         const node = document.createElement('div');
         node.style.position = 'fixed';
-        node.style.overflow = 'hidden';
+        node.style.overflow = 'visible';
         node.style.pointerEvents = 'none';
         node.style.zIndex = '999999999999999999';
         return node;
@@ -2037,6 +2119,7 @@
         PS;
         Settings;
         HTMLNode;
+        HTMLNodeSize;
         constructor({ DS, PS }) {
             this.DS = DS;
             this.PS = PS;
@@ -2047,6 +2130,7 @@
                 this.HTMLNode.classList.add(settings['selectorAreaClass']);
             });
             this.HTMLNode.classList.add(this.Settings.selectorAreaClass);
+            // this.HTMLNodeSize = { top: 0, left: 0, height: 0, width: 0 }
             this.PS.subscribe('Area:modified', this.updatePos);
             this.PS.subscribe('Area:modified', this.updatePos);
             this.PS.subscribe('Interaction:init', this.init);
@@ -2067,17 +2151,35 @@
             this.HTMLNode[methodName](this.DS.Selector.HTMLNode);
             document[docEl][methodName](this.HTMLNode);
         };
+        clampSelectionArea = (selectionRect) => {
+            const containerRect = this.DS.Area.rect;
+            return {
+                top: Math.max(containerRect.top, selectionRect.top),
+                left: Math.max(containerRect.left, selectionRect.left),
+                right: Math.min(containerRect.right, selectionRect.right),
+                bottom: Math.min(containerRect.bottom, selectionRect.bottom),
+                width: Math.min(containerRect.width, selectionRect.width),
+                height: Math.min(containerRect.height, selectionRect.height),
+            };
+        };
         /** Updates the selectorAreas positions to match the areas */
         updatePos = () => {
             this._rect = undefined;
             const rect = this.DS.Area.rect;
             const border = this.DS.Area.computedBorder;
-            const padding = this.DS.Area.computedPadding;
             const { style } = this.HTMLNode;
-            const top = `${rect.top + border.top + padding.top}px`;
-            const left = `${rect.left + border.left + padding.left}px`;
-            const width = `${rect.width - padding.left - padding.right}px`;
-            const height = `${rect.height - padding.top - padding.bottom}px`;
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
+            this.HTMLNodeSize = {
+                top: rect.top + border.top + scrollY,
+                left: rect.left + border.left + scrollX,
+                width: rect.width,
+                height: rect.height,
+            };
+            const top = `${rect.top + border.top}px`;
+            const left = `${rect.left + border.left}px`;
+            const width = `${rect.width}px`;
+            const height = `${rect.height}px`;
             if (style.top !== top)
                 style.top = top;
             if (style.left !== left)

@@ -193,6 +193,13 @@ export interface DraggableStyles {
   divManyEl?: Partial<CSSStyleDeclaration>
 }
 
+export interface AreaSize {
+  left: number
+  top: number
+  height: number
+  width: number
+}
+
 export type CustomStyle = Omit<CSSStyleDeclaration, 'left' | 'top'>
 
 export type DSDragKeys = {
