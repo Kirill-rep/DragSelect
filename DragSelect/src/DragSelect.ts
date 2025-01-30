@@ -350,16 +350,13 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
   public addStyles(
     stylesItem: DraggableStyles,
     picture?: DSInputElement,
-    textOne?: string,
-    textTwo?: string
+    text?: string
   ) {
     this.Style.stylesItem.singleElem = stylesItem.singleElem
     this.Style.stylesItem.manyElem = stylesItem.manyElem
-    this.Style.stylesItem.divSinglEl = stylesItem.divSinglEl
-    this.Style.stylesItem.divManyEl = stylesItem.divManyEl
+    this.Style.stylesItem.divManyElWithText = stylesItem.divManyElWithText
     this.Style.picture = picture
-    this.Style.textOne = textOne
-    this.Style.textTwo = textTwo
+    this.Style.text = text
   }
 
   /** Gets all nodes that can potentially be selected */

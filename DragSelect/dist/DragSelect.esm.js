@@ -578,21 +578,17 @@ class Drag {
             this._divElementOne = this.DS.Style.picture || null;
             this._divElementTwo = document.createElement('div');
             const multipleItems = this._elements.length > 1 ? true : false;
-            const textOne = this.DS.Style.textOne;
-            const textTwo = this.DS.Style.textTwo;
+            const text = this.DS.Style.text;
             const styles = multipleItems
                 ? this.DS.Style.stylesItem.manyElem
                 : this.DS.Style.stylesItem.singleElem;
-            const stylesDivTwo = multipleItems
-                ? this.DS.Style.stylesItem.divManyEl
-                : this.DS.Style.stylesItem.divSinglEl;
+            const stylesDivManyElWithText = this.DS.Style.stylesItem.divManyElWithText;
             Object.assign(this._draggingElement.style, styles, {
                 left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
                 top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
             });
-            Object.assign(this._divElementTwo.style, stylesDivTwo);
-            if (textOne && textTwo)
-                this._divElementTwo.textContent = multipleItems ? textTwo : textOne;
+            Object.assign(this._divElementTwo.style, stylesDivManyElWithText);
+            this._divElementTwo.textContent = text || null;
         }
     };
     stop = () => {
@@ -2748,14 +2744,12 @@ class DragSelect {
             });
         return els;
     }
-    addStyles(stylesItem, picture, textOne, textTwo) {
+    addStyles(stylesItem, picture, text) {
         this.Style.stylesItem.singleElem = stylesItem.singleElem;
         this.Style.stylesItem.manyElem = stylesItem.manyElem;
-        this.Style.stylesItem.divSinglEl = stylesItem.divSinglEl;
-        this.Style.stylesItem.divManyEl = stylesItem.divManyEl;
+        this.Style.stylesItem.divManyElWithText = stylesItem.divManyElWithText;
         this.Style.picture = picture;
-        this.Style.textOne = textOne;
-        this.Style.textTwo = textTwo;
+        this.Style.text = text;
     }
     /** Gets all nodes that can potentially be selected */
     getSelectables = () => this.SelectableSet.elements;
