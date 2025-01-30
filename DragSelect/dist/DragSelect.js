@@ -581,7 +581,7 @@
             if (!this._draggingElement) {
                 this._draggingElement = document.createElement('div');
                 this._draggingElement.classList.add('drag-ghost');
-                this._divElementOne = document.createElement('div');
+                this._divElementOne = this.DS.Style.picture || null;
                 this._divElementTwo = document.createElement('div');
                 const multipleItems = this._elements.length > 1 ? true : false;
                 const textOne = this.DS.Style.textOne;
@@ -589,15 +589,13 @@
                 const styles = multipleItems
                     ? this.DS.Style.stylesItem.manyElem
                     : this.DS.Style.stylesItem.singleElem;
-                const stylesDivOne = this.DS.Style.stylesItem.fisrtDivSingleEl;
                 const stylesDivTwo = multipleItems
                     ? this.DS.Style.stylesItem.divManyEl
-                    : this.DS.Style.stylesItem.secondDivSingleEl;
+                    : this.DS.Style.stylesItem.divSinglEl;
                 Object.assign(this._draggingElement.style, styles, {
                     left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
                     top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
                 });
-                Object.assign(this._divElementOne.style, stylesDivOne);
                 Object.assign(this._divElementTwo.style, stylesDivTwo);
                 if (textOne && textTwo)
                     this._divElementTwo.textContent = multipleItems ? textTwo : textOne;
@@ -1923,7 +1921,6 @@
                 x: x + window.scrollX,
                 y: y + window.scrollY,
             };
-            console.log(this.ContainerSize);
             const pos = getSelectorPosition({
                 scrollAmount: ScrollStore.scrollAmount,
                 initialPointerPos: initPointerPos,
@@ -2757,12 +2754,12 @@
                 });
             return els;
         }
-        addStyles(stylesItem, textOne, textTwo) {
+        addStyles(stylesItem, picture, textOne, textTwo) {
             this.Style.stylesItem.singleElem = stylesItem.singleElem;
             this.Style.stylesItem.manyElem = stylesItem.manyElem;
-            this.Style.stylesItem.fisrtDivSingleEl = stylesItem.fisrtDivSingleEl;
-            this.Style.stylesItem.secondDivSingleEl = stylesItem.secondDivSingleEl;
+            this.Style.stylesItem.divSinglEl = stylesItem.divSinglEl;
             this.Style.stylesItem.divManyEl = stylesItem.divManyEl;
+            this.Style.picture = picture;
             this.Style.textOne = textOne;
             this.Style.textTwo = textTwo;
         }

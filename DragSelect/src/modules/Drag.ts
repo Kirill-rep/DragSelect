@@ -145,7 +145,7 @@ export default class Drag<E extends DSInputElement> {
     if (!this._draggingElement) {
       this._draggingElement = document.createElement('div')
       this._draggingElement.classList.add('drag-ghost')
-      this._divElementOne = document.createElement('div')
+      this._divElementOne = this.DS.Style.picture || null
       this._divElementTwo = document.createElement('div')
 
       const multipleItems = this._elements.length > 1 ? true : false
@@ -155,16 +155,14 @@ export default class Drag<E extends DSInputElement> {
       const styles = multipleItems
         ? this.DS.Style.stylesItem.manyElem
         : this.DS.Style.stylesItem.singleElem
-      const stylesDivOne = this.DS.Style.stylesItem.fisrtDivSingleEl
       const stylesDivTwo = multipleItems
         ? this.DS.Style.stylesItem.divManyEl
-        : this.DS.Style.stylesItem.secondDivSingleEl
+        : this.DS.Style.stylesItem.divSinglEl
 
       Object.assign(this._draggingElement.style, styles, {
         left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
         top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
       })
-      Object.assign(this._divElementOne.style, stylesDivOne)
       Object.assign(this._divElementTwo.style, stylesDivTwo)
       if (textOne && textTwo)
         this._divElementTwo.textContent = multipleItems ? textTwo : textOne

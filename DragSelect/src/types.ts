@@ -181,6 +181,7 @@ export interface DSBoundingRect extends DSBoundingRectBase {
 }
 export interface CustomStyles {
   stylesItem: DraggableStyles
+  picture?: DSInputElement
   textOne?: string
   textTwo?: string
 }
@@ -188,8 +189,7 @@ export interface CustomStyles {
 export interface DraggableStyles {
   singleElem: Partial<CustomStyle>
   manyElem?: Partial<CustomStyle>
-  fisrtDivSingleEl?: Partial<CSSStyleDeclaration>
-  secondDivSingleEl?: Partial<CSSStyleDeclaration>
+  divSinglEl?: Partial<CSSStyleDeclaration>
   divManyEl?: Partial<CSSStyleDeclaration>
 }
 

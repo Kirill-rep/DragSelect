@@ -453,14 +453,14 @@ interface DSBoundingRect extends DSBoundingRectBase {
 }
 interface CustomStyles {
     stylesItem: DraggableStyles;
+    picture?: DSInputElement;
     textOne?: string;
     textTwo?: string;
 }
 interface DraggableStyles {
     singleElem: Partial<CustomStyle>;
     manyElem?: Partial<CustomStyle>;
-    fisrtDivSingleEl?: Partial<CSSStyleDeclaration>;
-    secondDivSingleEl?: Partial<CSSStyleDeclaration>;
+    divSinglEl?: Partial<CSSStyleDeclaration>;
     divManyEl?: Partial<CSSStyleDeclaration>;
 }
 interface AreaSize {
@@ -900,7 +900,7 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
      * @return the added element(s)
      */
     addSelectables(elements: E | E[], addToSelection?: boolean, triggerCallback?: boolean): E[];
-    addStyles(stylesItem: DraggableStyles, textOne?: string, textTwo?: string): void;
+    addStyles(stylesItem: DraggableStyles, picture?: DSInputElement, textOne?: string, textTwo?: string): void;
     /** Gets all nodes that can potentially be selected */
     getSelectables: () => E[];
     /**

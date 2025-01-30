@@ -86,7 +86,6 @@ export default class Selector<E extends DSInputElement> {
       x: x + window.scrollX,
       y: y + window.scrollY,
     }
-    console.log(this.ContainerSize)
     const pos = getSelectorPosition({
       scrollAmount: ScrollStore.scrollAmount,
       initialPointerPos: initPointerPos,
