@@ -17,6 +17,7 @@ export default class Drag<E extends DSInputElement> {
   private _draggingElement: DSInputElement | null = null
   private _divElementOne: DSInputElement | null = null
   private _divElementTwo: DSInputElement | null = null
+  private _readyDropZone: DSInputElement | undefined = undefined
 
   DS: DragSelect<E>
   PS: PubSub<E>
@@ -200,7 +201,10 @@ export default class Drag<E extends DSInputElement> {
       if (this._divElementTwo)
         this._draggingElement.appendChild(this._divElementTwo)
     }
+
     let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff)
+    this.addReadyDropZone()
+
     posDirection = limitDirection({
       direction: posDirection,
       containerRect: this.DS.SelectorArea.rect,
@@ -252,6 +256,27 @@ export default class Drag<E extends DSInputElement> {
       : { x: 0, y: 0 }
     this._prevScrollPos = currentScrollVal
     return scrollDiff
+  }
+
+  private addReadyDropZone() {
+    const { x, y } = this.DS.getCurrentCursorPosition()
+    const elementsFromPoint = document.elementsFromPoint(x, y)
+    const dropZoneFromPoint = (elementsFromPoint as HTMLElement[]).filter(
+      (el) => el.closest('.ds-dropzone-ready')
+    )
+    const newReadyDropZone = dropZoneFromPoint.find((element) =>
+      element.classList.contains('ds-dropzone-ready')
+    )
+
+    if (this._readyDropZone && !newReadyDropZone) {
+      this._readyDropZone.classList.remove('ds-dropzone-ready-drop')
+    }
+
+    this._readyDropZone = newReadyDropZone
+
+    if (this._readyDropZone) {
+      this._readyDropZone.classList.add('ds-dropzone-ready-drop')
+    }
   }
 
   ////

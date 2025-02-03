@@ -595,6 +595,7 @@ declare class Drag<E extends DSInputElement> {
     private _draggingElement;
     private _divElementOne;
     private _divElementTwo;
+    private _readyDropZone;
     DS: DragSelect<E>;
     PS: PubSub<E>;
     Settings: DSSettings<E>;
@@ -612,6 +613,7 @@ declare class Drag<E extends DSInputElement> {
     private moveElements;
     private get _cursorDiff();
     private get _scrollDiff();
+    private addReadyDropZone;
     /**
      * Can be overridden to apply further filtering logic after the items to move are identified but before they actually get moved
      * Is expected to return the elements in the same shape as passed in

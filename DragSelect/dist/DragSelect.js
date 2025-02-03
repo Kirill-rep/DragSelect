@@ -491,6 +491,7 @@
         _draggingElement = null;
         _divElementOne = null;
         _divElementTwo = null;
+        _readyDropZone = undefined;
         DS;
         PS;
         Settings;
@@ -625,6 +626,7 @@
                     this._draggingElement.appendChild(this._divElementTwo);
             }
             let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff);
+            this.addReadyDropZone();
             posDirection = limitDirection({
                 direction: posDirection,
                 containerRect: this.DS.SelectorArea.rect,
@@ -666,6 +668,19 @@
                 : { x: 0, y: 0 };
             this._prevScrollPos = currentScrollVal;
             return scrollDiff;
+        }
+        addReadyDropZone() {
+            const { x, y } = this.DS.getCurrentCursorPosition();
+            const elementsFromPoint = document.elementsFromPoint(x, y);
+            const dropZoneFromPoint = elementsFromPoint.filter((el) => el.closest('.ds-dropzone-ready'));
+            const newReadyDropZone = dropZoneFromPoint.find((element) => element.classList.contains('ds-dropzone-ready'));
+            if (this._readyDropZone && !newReadyDropZone) {
+                this._readyDropZone.classList.remove('ds-dropzone-ready-drop');
+            }
+            this._readyDropZone = newReadyDropZone;
+            if (this._readyDropZone) {
+                this._readyDropZone.classList.add('ds-dropzone-ready-drop');
+            }
         }
         ////
         // [PUBLICLY EXPOSED METHODS]
