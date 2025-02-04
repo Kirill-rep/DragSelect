@@ -1676,19 +1676,23 @@
             };
             this.PS.publish('Selected:added:pre', publishData);
             super.add(element);
-            if (!this.firstOfElement) {
-                this.firstOfElement = true;
-                element.classList.add('selectedFirst');
+            this.elements.forEach((el) => {
+                el.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
+            });
+            element.classList.add(this.Settings.selectedClass);
+            const selectedCells = Array.from(document.querySelectorAll('.ds-selected'));
+            if (this.elements.length === 1) {
+                element.classList.add('selectedFirst', 'selectedLast');
             }
-            else if (this.currentOfElement) {
-                this.currentOfElement.classList.remove('selectedLast');
-                if (!this.currentOfElement.classList.contains('selectedFirst')) {
-                    this.currentOfElement.classList.add('selectedIntermediate');
+            else {
+                const elementsArray = selectedCells;
+                elementsArray[0].classList.add('selectedFirst');
+                elementsArray[elementsArray.length - 1].classList.add('selectedLast');
+                for (let i = 1; i < elementsArray.length - 1; i++) {
+                    elementsArray[i].classList.add('selectedIntermediate');
                 }
             }
             this.currentOfElement = element;
-            element.classList.add('selectedLast');
-            element.classList.add(this.Settings.selectedClass);
             if (this.Settings.useLayers)
                 element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`;
             this.PS.publish('Selected:added', publishData);
@@ -1704,20 +1708,22 @@
             this.PS.publish('Selected:removed:pre', publishData);
             const deleted = super.delete(element);
             element.classList.remove(this.Settings.selectedClass, 'selectedFirst', 'selectedIntermediate', 'selectedLast');
+            const selectedCells = Array.from(document.querySelectorAll('.ds-selected'));
             if (this.elements.length === 0) {
                 this.firstOfElement = false;
                 this.currentOfElement = null;
             }
-            else if (this.elements.length === 1) {
-                const remainingElement = this.elements[0];
-                remainingElement.classList.add('selectedLast');
-                this.currentOfElement = remainingElement;
-            }
             else {
-                const elementsArray = Array.from(this.elements);
+                const elementsArray = selectedCells;
+                elementsArray[0].classList.add('selectedFirst');
+                elementsArray[elementsArray.length - 1].classList.add('selectedLast');
+                if (this.elements.length > 1) {
+                    elementsArray[elementsArray.length - 1].classList.remove('selectedIntermediate');
+                }
+                for (let i = 1; i < elementsArray.length - 1; i++) {
+                    elementsArray[i].classList.add('selectedIntermediate');
+                }
                 this.currentOfElement = elementsArray[elementsArray.length - 1];
-                this.currentOfElement.classList.remove('selectedIntermediate');
-                this.currentOfElement.classList.add('selectedLast');
             }
             if (this.Settings.useLayers)
                 element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`;

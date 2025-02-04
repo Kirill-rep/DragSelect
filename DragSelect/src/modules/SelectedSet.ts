@@ -45,20 +45,33 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
 
-    if (!this.firstOfElement) {
-      this.firstOfElement = true
-      element.classList.add('selectedFirst')
-    } else if (this.currentOfElement) {
-      this.currentOfElement.classList.remove('selectedLast')
-      if (!this.currentOfElement.classList.contains('selectedFirst')) {
-        this.currentOfElement.classList.add('selectedIntermediate')
+    this.elements.forEach((el) => {
+      el.classList.remove(
+        'selectedFirst',
+        'selectedIntermediate',
+        'selectedLast'
+      )
+    })
+
+    element.classList.add(this.Settings.selectedClass)
+
+    const selectedCells = Array.from(
+      document.querySelectorAll('.ds-selected')
+    ) as E[]
+
+    if (this.elements.length === 1) {
+      element.classList.add('selectedFirst', 'selectedLast')
+    } else {
+      const elementsArray = selectedCells
+      elementsArray[0].classList.add('selectedFirst')
+      elementsArray[elementsArray.length - 1].classList.add('selectedLast')
+
+      for (let i = 1; i < elementsArray.length - 1; i++) {
+        elementsArray[i].classList.add('selectedIntermediate')
       }
     }
 
     this.currentOfElement = element
-    element.classList.add('selectedLast')
-
-    element.classList.add(this.Settings.selectedClass)
 
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`
@@ -82,19 +95,28 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       'selectedLast'
     )
 
+    const selectedCells = Array.from(
+      document.querySelectorAll('.ds-selected')
+    ) as E[]
+
     if (this.elements.length === 0) {
       this.firstOfElement = false
       this.currentOfElement = null
-    } else if (this.elements.length === 1) {
-      const remainingElement = this.elements[0]
-      remainingElement.classList.add('selectedLast')
-      this.currentOfElement = remainingElement
     } else {
-      const elementsArray = Array.from(this.elements)
-      this.currentOfElement = elementsArray[elementsArray.length - 1]
+      const elementsArray = selectedCells
+      elementsArray[0].classList.add('selectedFirst')
+      elementsArray[elementsArray.length - 1].classList.add('selectedLast')
 
-      this.currentOfElement.classList.remove('selectedIntermediate')
-      this.currentOfElement.classList.add('selectedLast')
+      if (this.elements.length > 1) {
+        elementsArray[elementsArray.length - 1].classList.remove(
+          'selectedIntermediate'
+        )
+      }
+      for (let i = 1; i < elementsArray.length - 1; i++) {
+        elementsArray[i].classList.add('selectedIntermediate')
+      }
+
+      this.currentOfElement = elementsArray[elementsArray.length - 1]
     }
 
     if (this.Settings.useLayers)
