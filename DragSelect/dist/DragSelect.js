@@ -1704,11 +1704,11 @@
             this.PS.publish('Selected:removed:pre', publishData);
             const deleted = super.delete(element);
             element.classList.remove(this.Settings.selectedClass, 'selectedFirst', 'selectedIntermediate', 'selectedLast');
-            if (this.elements.length === 1 || this.elements.length === 0) {
+            if (this.elements.length === 0) {
                 this.firstOfElement = false;
                 this.currentOfElement = null;
             }
-            else if (this.elements.length === 2) {
+            else if (this.elements.length === 1) {
                 const remainingElement = this.elements[0];
                 remainingElement.classList.add('selectedLast');
                 this.currentOfElement = remainingElement;

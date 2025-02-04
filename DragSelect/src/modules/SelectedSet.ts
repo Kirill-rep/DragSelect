@@ -82,10 +82,10 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       'selectedLast'
     )
 
-    if (this.elements.length === 1 || this.elements.length === 0) {
+    if (this.elements.length === 0) {
       this.firstOfElement = false
       this.currentOfElement = null
-    } else if (this.elements.length === 2) {
+    } else if (this.elements.length === 1) {
       const remainingElement = this.elements[0]
       remainingElement.classList.add('selectedLast')
       this.currentOfElement = remainingElement
