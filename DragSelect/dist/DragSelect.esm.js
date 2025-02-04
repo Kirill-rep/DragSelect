@@ -1702,18 +1702,16 @@ class SelectedSet extends Set {
             this.firstOfElement = false;
             this.currentOfElement = null;
         }
+        else if (this.elements.length === 2) {
+            const remainingElement = this.elements[0];
+            remainingElement.classList.add('selectedLast');
+            this.currentOfElement = remainingElement;
+        }
         else {
-            if (element === this.currentOfElement) {
-                const elementsArray = Array.from(this.elements);
-                this.currentOfElement = elementsArray[elementsArray.length - 1];
-                this.currentOfElement.classList.remove('selectedIntermediate');
-                this.currentOfElement.classList.add('selectedLast');
-            }
-            if (element.classList.contains('selectedFirst')) {
-                const elementsArray = Array.from(this.elements);
-                const newFirstElement = elementsArray[0];
-                newFirstElement.classList.add('selectedFirst');
-            }
+            const elementsArray = Array.from(this.elements);
+            this.currentOfElement = elementsArray[elementsArray.length - 1];
+            this.currentOfElement.classList.remove('selectedIntermediate');
+            this.currentOfElement.classList.add('selectedLast');
         }
         if (this.Settings.useLayers)
             element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`;

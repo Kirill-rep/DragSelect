@@ -85,20 +85,16 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     if (this.elements.length === 1 || this.elements.length === 0) {
       this.firstOfElement = false
       this.currentOfElement = null
+    } else if (this.elements.length === 2) {
+      const remainingElement = this.elements[0]
+      remainingElement.classList.add('selectedLast')
+      this.currentOfElement = remainingElement
     } else {
-      if (element === this.currentOfElement) {
-        const elementsArray = Array.from(this.elements)
-        this.currentOfElement = elementsArray[elementsArray.length - 1]
+      const elementsArray = Array.from(this.elements)
+      this.currentOfElement = elementsArray[elementsArray.length - 1]
 
-        this.currentOfElement.classList.remove('selectedIntermediate')
-        this.currentOfElement.classList.add('selectedLast')
-      }
-
-      if (element.classList.contains('selectedFirst')) {
-        const elementsArray = Array.from(this.elements)
-        const newFirstElement = elementsArray[0]
-        newFirstElement.classList.add('selectedFirst')
-      }
+      this.currentOfElement.classList.remove('selectedIntermediate')
+      this.currentOfElement.classList.add('selectedLast')
     }
 
     if (this.Settings.useLayers)
