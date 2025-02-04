@@ -24,12 +24,16 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
+  private firstOfElement: boolean
+  private currentOfElement: DSInputElement | null
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     super()
     this.DS = DS
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
+    this.firstOfElement = false
+    this.currentOfElement = null
   }
 
   public add(element?: E) {
@@ -40,7 +44,22 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     }
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
+
+    if (!this.firstOfElement) {
+      this.firstOfElement = true
+      element.classList.add('selectedFirst')
+    } else if (this.currentOfElement) {
+      this.currentOfElement.classList.remove('selectedLast')
+      if (!this.currentOfElement.classList.contains('selectedFirst')) {
+        this.currentOfElement.classList.add('selectedIntermediate')
+      }
+    }
+
+    this.currentOfElement = element
+    element.classList.add('selectedLast')
+
     element.classList.add(this.Settings.selectedClass)
+
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`
     this.PS.publish('Selected:added', publishData)
@@ -55,7 +74,33 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     }
     this.PS.publish('Selected:removed:pre', publishData)
     const deleted = super.delete(element)
-    element.classList.remove(this.Settings.selectedClass)
+
+    element.classList.remove(
+      this.Settings.selectedClass,
+      'selectedFirst',
+      'selectedIntermediate',
+      'selectedLast'
+    )
+
+    if (this.elements.length === 1 || this.elements.length === 0) {
+      this.firstOfElement = false
+      this.currentOfElement = null
+    } else {
+      if (element === this.currentOfElement) {
+        const elementsArray = Array.from(this.elements)
+        this.currentOfElement = elementsArray[elementsArray.length - 1]
+
+        this.currentOfElement.classList.remove('selectedIntermediate')
+        this.currentOfElement.classList.add('selectedLast')
+      }
+
+      if (element.classList.contains('selectedFirst')) {
+        const elementsArray = Array.from(this.elements)
+        const newFirstElement = elementsArray[0]
+        newFirstElement.classList.add('selectedFirst')
+      }
+    }
+
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`
     this.PS.publish('Selected:removed', publishData)

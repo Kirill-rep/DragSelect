@@ -489,6 +489,8 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     private DS;
     private PS;
     private Settings;
+    private firstOfElement;
+    private currentOfElement;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
