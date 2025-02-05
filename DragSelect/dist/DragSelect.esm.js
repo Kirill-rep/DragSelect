@@ -1551,6 +1551,7 @@ class SelectableSet extends Set {
     DS;
     PS;
     Settings;
+    _rectTest;
     constructor({ DS, PS }) {
         super();
         this.DS = DS;
@@ -1580,7 +1581,9 @@ class SelectableSet extends Set {
         element.classList.add(this.Settings.selectableClass);
         element.addEventListener('click', this._onClick);
         if (this.Settings.usePointerEvents)
-            element.addEventListener('pointerdown', this._onPointer, { passive: false });
+            element.addEventListener('pointerdown', this._onPointer, {
+                passive: false,
+            });
         else
             element.addEventListener('mousedown', this._onPointer);
         element.addEventListener('touchstart', this._onPointer, { passive: false });
@@ -1618,10 +1621,14 @@ class SelectableSet extends Set {
         return super.delete(element);
     }
     clear = () => this.forEach((el) => this.delete(el));
-    _onClick = (event) => // we know it’s only a MouseEvent
-     this.PS.publish(['Selectable:click:pre', 'Selectable:click'], { event: event });
-    _onPointer = (event) => // we know it’s only an InteractionEvent
-     this.PS.publish(['Selectable:pointer:pre', 'Selectable:pointer'], { event: event });
+    _onClick = (event // we know it’s only a MouseEvent
+    ) => this.PS.publish(['Selectable:click:pre', 'Selectable:click'], {
+        event: event,
+    });
+    _onPointer = (event // we know it’s only an InteractionEvent
+    ) => this.PS.publish(['Selectable:pointer:pre', 'Selectable:pointer'], {
+        event: event,
+    });
     addAll = (elements) => elements.forEach((el) => this.add(el));
     deleteAll = (elements) => elements.forEach((el) => this.delete(el));
     /**
@@ -1631,6 +1638,21 @@ class SelectableSet extends Set {
     getElementRect = (element) => this._rects ? this._rects.get(element) : element.getBoundingClientRect();
     get elements() {
         return Array.from(this.values());
+    }
+    get testElements() {
+        return Array.from(document.querySelectorAll('.ds'));
+    }
+    get rectTest() {
+        if (this._rectTest)
+            return this._rectTest;
+        this._rectTest = new Map();
+        this.testElements.forEach((el) => {
+            this._rectTest?.set(el, el.getBoundingClientRect());
+        });
+        if (this._timeout)
+            clearTimeout(this._timeout);
+        this._timeout = setTimeout(() => (this._rectTest = undefined), this.Settings.refreshMemoryRate);
+        return this._rectTest;
     }
     get rects() {
         if (this._rects)
@@ -2046,12 +2068,16 @@ class Selection {
     DS;
     PS;
     Settings;
+    test;
+    elements;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
         this.PS.subscribe('Interaction:start', this.start);
         this.PS.subscribe('Interaction:update', this.update);
+        this.test = new Map();
+        this.elements = Array.from(document.querySelectorAll('.ds'));
     }
     /** Stores the previous selection (solves #9) */
     _storePrevious(event) {
@@ -2078,17 +2104,23 @@ class Selection {
         const multiSelectionToggle = this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) &&
             this.Settings.multiSelectToggling;
         const selectionThreshold = this.Settings.selectionThreshold;
-        const elRects = SelectableSet.rects;
+        SelectableSet.rects;
+        const elDsRects = SelectableSet.rectTest;
         const selectorRect = Selector.rect;
         const select = new Map();
         const unselect = new Map();
-        for (const [element, elementRect] of elRects) {
+        console.log(elDsRects);
+        for (const [element, elementRect] of elDsRects) {
+            const el = element.querySelector('.ds-selectable');
+            const elRect = el.getBoundingClientRect();
             if (!SelectorArea.isInside(element, elementRect))
                 continue;
-            if (isCollision(elementRect, selectorRect, selectionThreshold))
-                select.set(element, elementRect);
-            else
-                unselect.set(element, elementRect);
+            if (isCollision(elementRect, selectorRect, selectionThreshold)) {
+                select.set(el, elRect);
+            }
+            else {
+                unselect.set(el, elRect);
+            }
         }
         if (this.DS.continue)
             return;

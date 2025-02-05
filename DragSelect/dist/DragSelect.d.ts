@@ -154,7 +154,7 @@ type DSPublicPublish<E extends DSInputElement> = {
     'DS:end:pre': InteractionEndCB<E>;
 };
 
-type DSSelectablePublishEventNames = "Selectable:added:pre" | "Selectable:added" | "Selectable:removed" | "Selectable:removed:pre" | "Selectable:click:pre" | "Selectable:click" | "Selectable:pointer:pre" | "Selectable:pointer";
+type DSSelectablePublishEventNames = 'Selectable:added:pre' | 'Selectable:added' | 'Selectable:removed' | 'Selectable:removed:pre' | 'Selectable:click:pre' | 'Selectable:click' | 'Selectable:pointer:pre' | 'Selectable:pointer';
 type DSSelectablePublishEventData<E extends DSInputElement> = {
     /** The items currently selected */
     items: E[];
@@ -162,20 +162,20 @@ type DSSelectablePublishEventData<E extends DSInputElement> = {
     item: E;
 };
 type DSSelectablePublish<E extends DSInputElement> = {
-    "Selectable:added:pre": DSSelectablePublishEventData<E>;
-    "Selectable:added": DSSelectablePublishEventData<E>;
-    "Selectable:removed:pre": DSSelectablePublishEventData<E>;
-    "Selectable:removed": DSSelectablePublishEventData<E>;
-    "Selectable:click:pre": {
+    'Selectable:added:pre': DSSelectablePublishEventData<E>;
+    'Selectable:added': DSSelectablePublishEventData<E>;
+    'Selectable:removed:pre': DSSelectablePublishEventData<E>;
+    'Selectable:removed': DSSelectablePublishEventData<E>;
+    'Selectable:click:pre': {
         event: MouseEvent;
     };
-    "Selectable:click": {
+    'Selectable:click': {
         event: MouseEvent;
     };
-    "Selectable:pointer:pre": {
+    'Selectable:pointer:pre': {
         event: InteractionEvent;
     };
-    "Selectable:pointer": {
+    'Selectable:pointer': {
         event: InteractionEvent;
     };
 };
@@ -185,6 +185,7 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
     private DS;
     private PS;
     private Settings;
+    private _rectTest?;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -203,6 +204,8 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
      */
     getElementRect: (element: E) => DSBoundingRect | DOMRect | undefined;
     get elements(): E[];
+    get testElements(): E[];
+    get rectTest(): Map<E, DSBoundingRect>;
     get rects(): Map<E, DSBoundingRect>;
 }
 
@@ -713,6 +716,8 @@ declare class Selection<E extends DSInputElement> {
     private DS;
     private PS;
     private Settings;
+    private test;
+    private elements;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
