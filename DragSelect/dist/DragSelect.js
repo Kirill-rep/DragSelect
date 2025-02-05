@@ -1701,17 +1701,28 @@
             this.elements.forEach((el) => {
                 el.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
             });
+            //TODO
+            //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
             element.classList.add(this.Settings.selectedClass);
             const selectedCells = Array.from(document.querySelectorAll('.ds-selected'));
             if (this.elements.length === 1) {
-                element.classList.add('selectedFirst', 'selectedLast');
+                if (element)
+                    element.classList.add('selectedFirst', 'selectedLast');
             }
             else {
                 const elementsArray = selectedCells;
-                elementsArray[0].classList.add('selectedFirst');
-                elementsArray[elementsArray.length - 1].classList.add('selectedLast');
+                if (elementsArray.length > 0) {
+                    if (elementsArray[0]) {
+                        elementsArray[0].classList.add('selectedFirst');
+                    }
+                    const lastElement = elementsArray[elementsArray.length - 1];
+                    if (lastElement) {
+                        lastElement.classList.add('selectedLast');
+                    }
+                }
                 for (let i = 1; i < elementsArray.length - 1; i++) {
-                    elementsArray[i].classList.add('selectedIntermediate');
+                    if (elementsArray[i])
+                        elementsArray[i].classList.add('selectedIntermediate');
                 }
             }
             this.currentOfElement = element;
