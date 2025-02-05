@@ -72,7 +72,6 @@ export default class Selection<E extends DSInputElement> {
     const select: Map<E, DSBoundingRect> = new Map()
     const unselect: Map<E, DSBoundingRect> = new Map()
 
-    console.log(elDsRects)
     for (const [element, elementRect] of elDsRects) {
       const el = element.querySelector('.ds-selectable') as E
       const elRect = el.getBoundingClientRect()

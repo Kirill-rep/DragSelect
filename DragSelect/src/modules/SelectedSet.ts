@@ -104,19 +104,21 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       this.currentOfElement = null
     } else {
       const elementsArray = selectedCells
-      elementsArray[0].classList.add('selectedFirst')
-      elementsArray[elementsArray.length - 1].classList.add('selectedLast')
+      if (elementsArray) {
+        elementsArray[0].classList.add('selectedFirst')
+        elementsArray[elementsArray.length - 1].classList.add('selectedLast')
 
-      if (this.elements.length > 1) {
-        elementsArray[elementsArray.length - 1].classList.remove(
-          'selectedIntermediate'
-        )
-      }
-      for (let i = 1; i < elementsArray.length - 1; i++) {
-        elementsArray[i].classList.add('selectedIntermediate')
-      }
+        if (this.elements.length > 1) {
+          elementsArray[elementsArray.length - 1].classList.remove(
+            'selectedIntermediate'
+          )
+        }
+        for (let i = 1; i < elementsArray.length - 1; i++) {
+          elementsArray[i].classList.add('selectedIntermediate')
+        }
 
-      this.currentOfElement = elementsArray[elementsArray.length - 1]
+        this.currentOfElement = elementsArray[elementsArray.length - 1]
+      }
     }
 
     if (this.Settings.useLayers)

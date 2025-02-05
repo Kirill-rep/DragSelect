@@ -1737,15 +1737,17 @@
             }
             else {
                 const elementsArray = selectedCells;
-                elementsArray[0].classList.add('selectedFirst');
-                elementsArray[elementsArray.length - 1].classList.add('selectedLast');
-                if (this.elements.length > 1) {
-                    elementsArray[elementsArray.length - 1].classList.remove('selectedIntermediate');
+                if (elementsArray) {
+                    elementsArray[0].classList.add('selectedFirst');
+                    elementsArray[elementsArray.length - 1].classList.add('selectedLast');
+                    if (this.elements.length > 1) {
+                        elementsArray[elementsArray.length - 1].classList.remove('selectedIntermediate');
+                    }
+                    for (let i = 1; i < elementsArray.length - 1; i++) {
+                        elementsArray[i].classList.add('selectedIntermediate');
+                    }
+                    this.currentOfElement = elementsArray[elementsArray.length - 1];
                 }
-                for (let i = 1; i < elementsArray.length - 1; i++) {
-                    elementsArray[i].classList.add('selectedIntermediate');
-                }
-                this.currentOfElement = elementsArray[elementsArray.length - 1];
             }
             if (this.Settings.useLayers)
                 element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`;
@@ -2115,7 +2117,6 @@
             const selectorRect = Selector.rect;
             const select = new Map();
             const unselect = new Map();
-            console.log(elDsRects);
             for (const [element, elementRect] of elDsRects) {
                 const el = element.querySelector('.ds-selectable');
                 const elRect = el.getBoundingClientRect();
