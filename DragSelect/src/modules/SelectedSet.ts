@@ -95,6 +95,8 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       'selectedLast'
     )
 
+    //TODO
+    //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
     const selectedCells = Array.from(
       document.querySelectorAll('.ds-selected')
     ) as E[]
@@ -104,17 +106,25 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       this.currentOfElement = null
     } else {
       const elementsArray = selectedCells
-      if (elementsArray) {
-        elementsArray[0].classList.add('selectedFirst')
-        elementsArray[elementsArray.length - 1].classList.add('selectedLast')
+      if (elementsArray && elementsArray.length > 0) {
+        if (elementsArray[0]) {
+          elementsArray[0].classList.add('selectedFirst')
+        }
 
-        if (this.elements.length > 1) {
-          elementsArray[elementsArray.length - 1].classList.remove(
-            'selectedIntermediate'
-          )
+        const lastElement = elementsArray[elementsArray.length - 1]
+        if (lastElement) {
+          lastElement.classList.add('selectedLast')
+
+          if (this.elements.length > 1) {
+            elementsArray[elementsArray.length - 1].classList.remove(
+              'selectedIntermediate'
+            )
+          }
         }
         for (let i = 1; i < elementsArray.length - 1; i++) {
-          elementsArray[i].classList.add('selectedIntermediate')
+          if (elementsArray[i]) {
+            elementsArray[i].classList.add('selectedIntermediate')
+          }
         }
 
         this.currentOfElement = elementsArray[elementsArray.length - 1]
