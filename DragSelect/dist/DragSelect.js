@@ -492,6 +492,7 @@
         _divElementOne = null;
         _divElementTwo = null;
         _readyDropZone = undefined;
+        _styles;
         startDrag;
         DS;
         PS;
@@ -586,10 +587,10 @@
                 this._draggingElement = document.createElement('div');
                 this._draggingElement.classList.add('drag-ghost');
                 const multipleItems = this._elements.length > 1 ? true : false;
-                const text = this.DS.Style.text;
-                const styles = multipleItems
+                this._styles = multipleItems
                     ? this.DS.Style.stylesItem.manyElem
                     : this.DS.Style.stylesItem.singleElem;
+                const text = this.DS.Style.text;
                 const stylesDivManyElWithText = this.DS.Style.stylesItem.divManyElWithText;
                 if (multipleItems) {
                     this._divElementOne = null;
@@ -601,10 +602,6 @@
                     this._divElementTwo = null;
                     this._divElementOne = this.DS.Style.picture || null;
                 }
-                Object.assign(this._draggingElement.style, styles, {
-                    left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
-                    top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
-                });
             }
         };
         stop = () => {
@@ -624,13 +621,17 @@
                 isDraggingKeyboard ||
                 this.DS.continue)
                 return;
-            if (this.startDrag) {
-                this.startDrag = false;
-                this._elements.forEach((el) => {
-                    el.classList.add('isDragging');
-                });
-            }
             if (!document.querySelector('.drag-ghost') && this._draggingElement) {
+                if (this.startDrag) {
+                    this.startDrag = false;
+                    this._elements.forEach((el) => {
+                        el.classList.add('isDragging');
+                    });
+                    Object.assign(this._draggingElement.style, this._styles, {
+                        left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
+                        top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
+                    });
+                }
                 document.body.appendChild(this._draggingElement);
                 if (this._divElementOne)
                     this._draggingElement.appendChild(this._divElementOne);

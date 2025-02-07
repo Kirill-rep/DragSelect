@@ -604,6 +604,7 @@ declare class Drag<E extends DSInputElement> {
     private _divElementOne;
     private _divElementTwo;
     private _readyDropZone;
+    private _styles;
     private startDrag;
     DS: DragSelect<E>;
     PS: PubSub<E>;

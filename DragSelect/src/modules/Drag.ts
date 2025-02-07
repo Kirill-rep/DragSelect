@@ -1,6 +1,12 @@
 import DragSelect from '../DragSelect'
 import PubSub from './PubSub'
-import { DSBoundingRect, DSDragKeys, DSInputElement, Vect2 } from '../types'
+import {
+  CustomStyle,
+  DSBoundingRect,
+  DSDragKeys,
+  DSInputElement,
+  Vect2,
+} from '../types'
 import { DSSettings } from '../stores/SettingsStore'
 import { calcVect, num2vect, vect2rect } from '../methods/vect2'
 import { handleKeyboardDragPosDifference } from '../methods/handleKeyboardDragPosDifference'
@@ -18,6 +24,7 @@ export default class Drag<E extends DSInputElement> {
   private _divElementOne: DSInputElement | null = null
   private _divElementTwo: DSInputElement | null = null
   private _readyDropZone: DSInputElement | undefined = undefined
+  private _styles: Partial<CustomStyle> | undefined
   private startDrag: boolean
 
   DS: DragSelect<E>
@@ -152,10 +159,10 @@ export default class Drag<E extends DSInputElement> {
       this._draggingElement.classList.add('drag-ghost')
 
       const multipleItems = this._elements.length > 1 ? true : false
-      const text = this.DS.Style.text
-      const styles = multipleItems
+      this._styles = multipleItems
         ? this.DS.Style.stylesItem.manyElem
         : this.DS.Style.stylesItem.singleElem
+      const text = this.DS.Style.text
       const stylesDivManyElWithText = this.DS.Style.stylesItem.divManyElWithText
 
       if (multipleItems) {
@@ -167,11 +174,6 @@ export default class Drag<E extends DSInputElement> {
         this._divElementTwo = null
         this._divElementOne = this.DS.Style.picture || null
       }
-
-      Object.assign(this._draggingElement.style, styles, {
-        left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
-        top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
-      })
     }
   }
 
@@ -202,14 +204,19 @@ export default class Drag<E extends DSInputElement> {
     )
       return
 
-    if (this.startDrag) {
-      this.startDrag = false
-      this._elements.forEach((el) => {
-        el.classList.add('isDragging')
-      })
-    }
-
     if (!document.querySelector('.drag-ghost') && this._draggingElement) {
+      if (this.startDrag) {
+        this.startDrag = false
+        this._elements.forEach((el) => {
+          el.classList.add('isDragging')
+        })
+
+        Object.assign(this._draggingElement.style, this._styles, {
+          left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
+          top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
+        })
+      }
+
       document.body.appendChild(this._draggingElement)
       if (this._divElementOne)
         this._draggingElement.appendChild(this._divElementOne)
