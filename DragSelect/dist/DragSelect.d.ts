@@ -74,6 +74,9 @@ declare class Interaction<E extends DSInputElement> {
     private DS;
     private PS;
     private Settings;
+    private startX;
+    private startY;
+    private dragThreshold;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -601,7 +604,7 @@ declare class Drag<E extends DSInputElement> {
     private _divElementOne;
     private _divElementTwo;
     private _readyDropZone;
-    private dragThreshold;
+    private startDrag;
     DS: DragSelect<E>;
     PS: PubSub<E>;
     Settings: DSSettings<E>;

@@ -43,6 +43,10 @@ export default class Interaction<E extends DSInputElement> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
+  private startX = 0
+  private startY = 0
+  private dragThreshold = 5
+
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
     this.PS = PS
@@ -104,6 +108,11 @@ export default class Interaction<E extends DSInputElement> {
     if (!this._canInteract(event)) return
     this.isInteracting = true
     this.isDragging = this.isDragEvent(event)
+
+    if ('clientX' in event && 'clientY' in event) {
+      this.startX = event.clientX
+      this.startY = event.clientY
+    }
 
     this.PS.publish('Interaction:start', {
       event,
@@ -179,13 +188,19 @@ export default class Interaction<E extends DSInputElement> {
     scroll_directions?: DSEdges
     scroll_multiplier?: number
   }) => {
-    if (this.isInteracting)
+    if (!this.isInteracting || !event || !('clientX' in event)) return
+
+    const deltaX = Math.abs(event.clientX - this.startX)
+    const deltaY = Math.abs(event.clientY - this.startY)
+
+    if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
       this.PS.publish(['Interaction:update:pre', 'Interaction:update'], {
         event,
         scroll_directions,
         scroll_multiplier,
         isDragging: this.isDragging,
       })
+    }
   }
 
   reset = (event: InteractionEvent) =>

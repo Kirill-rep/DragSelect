@@ -492,7 +492,7 @@
         _divElementOne = null;
         _divElementTwo = null;
         _readyDropZone = undefined;
-        dragThreshold;
+        startDrag;
         DS;
         PS;
         Settings;
@@ -500,7 +500,7 @@
             this.DS = DS;
             this.PS = PS;
             this.Settings = this.DS.stores.SettingsStore.s;
-            this.dragThreshold = 5;
+            this.startDrag = false;
             this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys);
             this.assignDragKeys();
             this.PS.subscribe('Interaction:start', this.start);
@@ -581,6 +581,7 @@
             this._elements = this.DS.getSelection();
             this._selectionRect = this.DS.Selection.boundingRect;
             this.handleZIndex(true);
+            this.startDrag = true;
             if (!this._draggingElement) {
                 this._draggingElement = document.createElement('div');
                 this._draggingElement.classList.add('drag-ghost');
@@ -611,7 +612,7 @@
             this._prevScrollPos = undefined;
             this.handleZIndex(false);
             this._elements.forEach((el) => {
-                el.classList.remove('.isDragging');
+                el.classList.remove('isDragging');
             });
             this._elements = [];
             this._draggingElement?.remove();
@@ -623,21 +624,18 @@
                 isDraggingKeyboard ||
                 this.DS.continue)
                 return;
-            const { x: initX, y: initY } = this.DS.getInitialCursorPosition();
-            const { x: curX, y: curY } = this.DS.getCurrentCursorPosition();
-            const deltaX = Math.abs(curX - initX);
-            const deltaY = Math.abs(curY - initY);
-            if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
+            if (this.startDrag) {
+                this.startDrag = false;
                 this._elements.forEach((el) => {
-                    el.classList.add('.isDragging');
+                    el.classList.add('isDragging');
                 });
-                if (!document.querySelector('.drag-ghost') && this._draggingElement) {
-                    document.body.appendChild(this._draggingElement);
-                    if (this._divElementOne)
-                        this._draggingElement.appendChild(this._divElementOne);
-                    if (this._divElementTwo)
-                        this._draggingElement.appendChild(this._divElementTwo);
-                }
+            }
+            if (!document.querySelector('.drag-ghost') && this._draggingElement) {
+                document.body.appendChild(this._draggingElement);
+                if (this._divElementOne)
+                    this._draggingElement.appendChild(this._divElementOne);
+                if (this._divElementTwo)
+                    this._draggingElement.appendChild(this._divElementTwo);
             }
             let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff);
             this.addReadyDropZone();
@@ -1025,6 +1023,9 @@
         DS;
         PS;
         Settings;
+        startX = 0;
+        startY = 0;
+        dragThreshold = 5;
         constructor({ DS, PS }) {
             this.DS = DS;
             this.PS = PS;
@@ -1073,6 +1074,10 @@
                 return;
             this.isInteracting = true;
             this.isDragging = this.isDragEvent(event);
+            if ('clientX' in event && 'clientY' in event) {
+                this.startX = event.clientX;
+                this.startY = event.clientY;
+            }
             this.PS.publish('Interaction:start', {
                 event,
                 isDragging: this.isDragging,
@@ -1124,13 +1129,18 @@
             this.removeDocEventListeners();
         };
         update = ({ event, scroll_directions, scroll_multiplier, }) => {
-            if (this.isInteracting)
+            if (!this.isInteracting || !event || !('clientX' in event))
+                return;
+            const deltaX = Math.abs(event.clientX - this.startX);
+            const deltaY = Math.abs(event.clientY - this.startY);
+            if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
                 this.PS.publish(['Interaction:update:pre', 'Interaction:update'], {
                     event,
                     scroll_directions,
                     scroll_multiplier,
                     isDragging: this.isDragging,
                 });
+            }
         };
         reset = (event) => this.PS.publish('Interaction:end:pre', {
             event,
