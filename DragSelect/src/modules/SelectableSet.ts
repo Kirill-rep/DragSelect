@@ -149,7 +149,7 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
     return Array.from(this.values())
   }
 
-  get testElements() {
+  get rowElements() {
     return Array.from(document.querySelectorAll('.ds')) as E[]
   }
 
@@ -157,7 +157,7 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
     if (this._rectTest) return this._rectTest
     this._rectTest = new Map()
 
-    this.testElements.forEach((el) => {
+    this.rowElements.forEach((el) => {
       this._rectTest?.set(el, el.getBoundingClientRect())
     })
 

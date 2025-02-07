@@ -43,7 +43,6 @@ export default class Interaction<E extends DSInputElement> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
-
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
     this.PS = PS

@@ -204,7 +204,7 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
      */
     getElementRect: (element: E) => DSBoundingRect | DOMRect | undefined;
     get elements(): E[];
-    get testElements(): E[];
+    get rowElements(): E[];
     get rectTest(): Map<E, DSBoundingRect>;
     get rects(): Map<E, DSBoundingRect>;
 }
@@ -601,6 +601,7 @@ declare class Drag<E extends DSInputElement> {
     private _divElementOne;
     private _divElementTwo;
     private _readyDropZone;
+    private dragThreshold;
     DS: DragSelect<E>;
     PS: PubSub<E>;
     Settings: DSSettings<E>;

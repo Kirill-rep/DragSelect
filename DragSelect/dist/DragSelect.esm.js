@@ -486,6 +486,7 @@ class Drag {
     _divElementOne = null;
     _divElementTwo = null;
     _readyDropZone = undefined;
+    dragThreshold;
     DS;
     PS;
     Settings;
@@ -493,6 +494,7 @@ class Drag {
         this.DS = DS;
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
+        this.dragThreshold = 5;
         this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys);
         this.assignDragKeys();
         this.PS.subscribe('Interaction:start', this.start);
@@ -602,6 +604,9 @@ class Drag {
         this._prevCursorPos = undefined;
         this._prevScrollPos = undefined;
         this.handleZIndex(false);
+        this._elements.forEach((el) => {
+            el.classList.remove('.isDragging');
+        });
         this._elements = [];
         this._draggingElement?.remove();
         this._draggingElement = null;
@@ -612,12 +617,21 @@ class Drag {
             isDraggingKeyboard ||
             this.DS.continue)
             return;
-        if (!document.querySelector('.drag-ghost') && this._draggingElement) {
-            document.body.appendChild(this._draggingElement);
-            if (this._divElementOne)
-                this._draggingElement.appendChild(this._divElementOne);
-            if (this._divElementTwo)
-                this._draggingElement.appendChild(this._divElementTwo);
+        const { x: initX, y: initY } = this.DS.getInitialCursorPosition();
+        const { x: curX, y: curY } = this.DS.getCurrentCursorPosition();
+        const deltaX = Math.abs(curX - initX);
+        const deltaY = Math.abs(curY - initY);
+        if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
+            this._elements.forEach((el) => {
+                el.classList.add('.isDragging');
+            });
+            if (!document.querySelector('.drag-ghost') && this._draggingElement) {
+                document.body.appendChild(this._draggingElement);
+                if (this._divElementOne)
+                    this._draggingElement.appendChild(this._divElementOne);
+                if (this._divElementTwo)
+                    this._draggingElement.appendChild(this._divElementTwo);
+            }
         }
         let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff);
         this.addReadyDropZone();
@@ -1639,14 +1653,14 @@ class SelectableSet extends Set {
     get elements() {
         return Array.from(this.values());
     }
-    get testElements() {
+    get rowElements() {
         return Array.from(document.querySelectorAll('.ds'));
     }
     get rectTest() {
         if (this._rectTest)
             return this._rectTest;
         this._rectTest = new Map();
-        this.testElements.forEach((el) => {
+        this.rowElements.forEach((el) => {
             this._rectTest?.set(el, el.getBoundingClientRect());
         });
         if (this._timeout)
@@ -2137,9 +2151,15 @@ class Selection {
             if (!SelectorArea.isInside(element, elementRect))
                 continue;
             if (isCollision(elementRect, selectorRect, selectionThreshold)) {
+                const row = el.parentElement;
+                if (row)
+                    row.classList.add('selection');
                 select.set(el, elRect);
             }
             else {
+                const row = el.parentElement;
+                if (row)
+                    row.classList.remove('selection');
                 unselect.set(el, elRect);
             }
         }

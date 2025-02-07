@@ -18,6 +18,7 @@ export default class Drag<E extends DSInputElement> {
   private _divElementOne: DSInputElement | null = null
   private _divElementTwo: DSInputElement | null = null
   private _readyDropZone: DSInputElement | undefined = undefined
+  private dragThreshold: number
 
   DS: DragSelect<E>
   PS: PubSub<E>
@@ -27,6 +28,7 @@ export default class Drag<E extends DSInputElement> {
     this.DS = DS
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
+    this.dragThreshold = 5
 
     this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys)
     this.assignDragKeys()
@@ -175,6 +177,9 @@ export default class Drag<E extends DSInputElement> {
     this._prevCursorPos = undefined
     this._prevScrollPos = undefined
     this.handleZIndex(false)
+    this._elements.forEach((el) => {
+      el.classList.remove('.isDragging')
+    })
     this._elements = []
     this._draggingElement?.remove()
     this._draggingElement = null
@@ -194,12 +199,24 @@ export default class Drag<E extends DSInputElement> {
       this.DS.continue
     )
       return
-    if (!document.querySelector('.drag-ghost') && this._draggingElement) {
-      document.body.appendChild(this._draggingElement)
-      if (this._divElementOne)
-        this._draggingElement.appendChild(this._divElementOne)
-      if (this._divElementTwo)
-        this._draggingElement.appendChild(this._divElementTwo)
+
+    const { x: initX, y: initY } = this.DS.getInitialCursorPosition()
+    const { x: curX, y: curY } = this.DS.getCurrentCursorPosition()
+
+    const deltaX = Math.abs(curX - initX)
+    const deltaY = Math.abs(curY - initY)
+
+    if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
+      this._elements.forEach((el) => {
+        el.classList.add('.isDragging')
+      })
+      if (!document.querySelector('.drag-ghost') && this._draggingElement) {
+        document.body.appendChild(this._draggingElement)
+        if (this._divElementOne)
+          this._draggingElement.appendChild(this._divElementOne)
+        if (this._divElementTwo)
+          this._draggingElement.appendChild(this._divElementTwo)
+      }
     }
 
     let posDirection = calcVect(this._cursorDiff, '+', this._scrollDiff)

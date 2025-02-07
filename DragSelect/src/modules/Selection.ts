@@ -77,8 +77,12 @@ export default class Selection<E extends DSInputElement> {
       const elRect = el.getBoundingClientRect()
       if (!SelectorArea.isInside(element, elementRect)) continue
       if (isCollision(elementRect, selectorRect, selectionThreshold)) {
+        const row = el.parentElement
+        if (row) row.classList.add('selection')
         select.set(el, elRect)
       } else {
+        const row = el.parentElement
+        if (row) row.classList.remove('selection')
         unselect.set(el, elRect)
       }
     }
