@@ -104,6 +104,7 @@ export default class Interaction<E extends DSInputElement> {
     })
 
   private _start = (event: KeyboardEvent | InteractionEvent) => {
+    if ((event.target as DSInputElement).closest('.ds-theader')) return
     if (event.type === 'touchstart') event.preventDefault() // Call preventDefault() to prevent double click issue, see https://github.com/ThibaultJanBeyer/DragSelect/pull/29 & https://developer.mozilla.org/vi/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent
     if (!this._canInteract(event)) return
     this.isInteracting = true
