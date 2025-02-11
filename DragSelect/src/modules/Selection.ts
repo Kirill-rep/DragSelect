@@ -14,8 +14,6 @@ export default class Selection<E extends DSInputElement> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
-  private test: Map<E, DSBoundingRect>
-  private elements: E[]
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
@@ -23,8 +21,6 @@ export default class Selection<E extends DSInputElement> {
     this.Settings = this.DS.stores.SettingsStore.s
     this.PS.subscribe('Interaction:start', this.start)
     this.PS.subscribe('Interaction:update', this.update)
-    this.test = new Map()
-    this.elements = Array.from(document.querySelectorAll('.ds'))
   }
 
   /** Stores the previous selection (solves #9) */
@@ -66,7 +62,7 @@ export default class Selection<E extends DSInputElement> {
     const selectionThreshold = this.Settings.selectionThreshold
 
     const elRects = SelectableSet.rects
-    const elDsRects = SelectableSet.rectTest
+    const elDsRects = SelectableSet.rectRow
     const selectorRect = Selector.rect
 
     const select: Map<E, DSBoundingRect> = new Map()

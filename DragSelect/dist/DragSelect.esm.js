@@ -1578,7 +1578,7 @@ class SelectableSet extends Set {
     DS;
     PS;
     Settings;
-    _rectTest;
+    _rectRow;
     constructor({ DS, PS }) {
         super();
         this.DS = DS;
@@ -1669,17 +1669,20 @@ class SelectableSet extends Set {
     get rowElements() {
         return Array.from(document.querySelectorAll('.ds'));
     }
-    get rectTest() {
-        if (this._rectTest)
-            return this._rectTest;
-        this._rectTest = new Map();
+    get rowFolders() {
+        return Array.from(document.querySelectorAll('.ds'));
+    }
+    get rectRow() {
+        if (this._rectRow)
+            return this._rectRow;
+        this._rectRow = new Map();
         this.rowElements.forEach((el) => {
-            this._rectTest?.set(el, el.getBoundingClientRect());
+            this._rectRow?.set(el, el.getBoundingClientRect());
         });
         if (this._timeout)
             clearTimeout(this._timeout);
-        this._timeout = setTimeout(() => (this._rectTest = undefined), this.Settings.refreshMemoryRate);
-        return this._rectTest;
+        this._timeout = setTimeout(() => (this._rectRow = undefined), this.Settings.refreshMemoryRate);
+        return this._rectRow;
     }
     get rects() {
         if (this._rects)
@@ -1700,15 +1703,13 @@ class SelectedSet extends Set {
     DS;
     PS;
     Settings;
-    firstOfElement;
-    currentOfElement;
+    selectedElements;
     constructor({ DS, PS }) {
         super();
         this.DS = DS;
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
-        this.firstOfElement = false;
-        this.currentOfElement = null;
+        this.selectedElements = [];
     }
     add(element) {
         if (!element || super.has(element))
@@ -1719,34 +1720,20 @@ class SelectedSet extends Set {
         };
         this.PS.publish('Selected:added:pre', publishData);
         super.add(element);
-        this.elements.forEach((el) => {
-            el.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
-        });
         //TODO
         //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
-        element.classList.add(this.Settings.selectedClass);
-        const selectedCells = Array.from(document.querySelectorAll('.ds-selected'));
-        if (this.elements.length === 1) {
-            if (element)
-                element.classList.add('selectedFirst', 'selectedLast');
+        if (element.closest('.ds-folder')) {
+            element.classList.add('ds-selected-folder');
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected-folder'));
         }
         else {
-            const elementsArray = selectedCells;
-            if (elementsArray.length > 0) {
-                if (elementsArray[0]) {
-                    elementsArray[0].classList.add('selectedFirst');
-                }
-                const lastElement = elementsArray[elementsArray.length - 1];
-                if (lastElement) {
-                    lastElement.classList.add('selectedLast');
-                }
-            }
-            for (let i = 1; i < elementsArray.length - 1; i++) {
-                if (elementsArray[i])
-                    elementsArray[i].classList.add('selectedIntermediate');
-            }
+            element.classList.add(this.Settings.selectedClass);
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected'));
         }
-        this.currentOfElement = element;
+        this.selectedElements.forEach((el) => {
+            el.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
+        });
+        this.updateSelectedClasses(this.selectedElements, element);
         if (this.Settings.useLayers)
             element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`;
         this.PS.publish('Selected:added', publishData);
@@ -1761,39 +1748,67 @@ class SelectedSet extends Set {
         };
         this.PS.publish('Selected:removed:pre', publishData);
         const deleted = super.delete(element);
-        element.classList.remove(this.Settings.selectedClass, 'selectedFirst', 'selectedIntermediate', 'selectedLast');
-        //TODO
-        //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
-        const selectedCells = Array.from(document.querySelectorAll('.ds-selected'));
-        if (this.elements.length === 0) {
-            this.firstOfElement = false;
-            this.currentOfElement = null;
+        if (element.closest('.ds-folder')) {
+            element.classList.remove('ds-selected-folder');
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected-folder'));
         }
         else {
-            const elementsArray = selectedCells;
-            if (elementsArray && elementsArray.length > 0) {
-                if (elementsArray[0]) {
-                    elementsArray[0].classList.add('selectedFirst');
-                }
-                const lastElement = elementsArray[elementsArray.length - 1];
-                if (lastElement) {
-                    lastElement.classList.add('selectedLast');
-                    if (this.elements.length > 1) {
-                        elementsArray[elementsArray.length - 1].classList.remove('selectedIntermediate');
-                    }
-                }
-                for (let i = 1; i < elementsArray.length - 1; i++) {
-                    if (elementsArray[i]) {
-                        elementsArray[i].classList.add('selectedIntermediate');
-                    }
-                }
-                this.currentOfElement = elementsArray[elementsArray.length - 1];
-            }
+            element.classList.remove(this.Settings.selectedClass);
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected'));
         }
+        element.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
+        //TODO
+        //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
+        this.updateSelectedClasses(this.selectedElements, element, true);
+        // const elementsArray = this.selectedElements
+        // console.log(elementsArray)
+        // if (elementsArray && elementsArray.length > 0) {
+        //   if (elementsArray[0]) {
+        //     elementsArray[0].classList.add('selectedFirst')
+        //   }
+        //   const lastElement = elementsArray[elementsArray.length - 1]
+        //   if (lastElement) {
+        //     lastElement.classList.add('selectedLast')
+        //     if (elementsArray.length > 1) {
+        //       elementsArray[elementsArray.length - 2].classList.remove(
+        //         'selectedIntermediate'
+        //       )
+        //     }
+        //   }
+        //   for (let i = 1; i < elementsArray.length - 1; i++) {
+        //     if (elementsArray[i]) {
+        //       elementsArray[i].classList.add('selectedIntermediate')
+        //     }
+        //   }
+        // }
         if (this.Settings.useLayers)
             element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`;
         this.PS.publish('Selected:removed', publishData);
         return deleted;
+    }
+    updateSelectedClasses(elementsArr, element, del) {
+        if (elementsArr.length === 1 && !del) {
+            if (element)
+                element.classList.add('selectedFirst', 'selectedLast');
+        }
+        else {
+            if (elementsArr && elementsArr.length > 0) {
+                if (elementsArr[0]) {
+                    elementsArr[0].classList.add('selectedFirst');
+                }
+                const lastElement = elementsArr[elementsArr.length - 1];
+                if (lastElement) {
+                    lastElement.classList.add('selectedLast');
+                    if (elementsArr.length > 1) {
+                        elementsArr[elementsArr.length - 2].classList.remove('selectedIntermediate');
+                    }
+                }
+            }
+            for (let i = 1; i < elementsArr.length - 1; i++) {
+                if (elementsArr[i])
+                    elementsArr[i].classList.add('selectedIntermediate');
+            }
+        }
     }
     clear = () => this.forEach((el) => this.delete(el));
     /** Adds/Removes an element. If it is already selected = remove, if not = add. */
@@ -2117,16 +2132,12 @@ class Selection {
     DS;
     PS;
     Settings;
-    test;
-    elements;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
         this.PS.subscribe('Interaction:start', this.start);
         this.PS.subscribe('Interaction:update', this.update);
-        this.test = new Map();
-        this.elements = Array.from(document.querySelectorAll('.ds'));
     }
     /** Stores the previous selection (solves #9) */
     _storePrevious(event) {
@@ -2154,7 +2165,7 @@ class Selection {
             this.Settings.multiSelectToggling;
         const selectionThreshold = this.Settings.selectionThreshold;
         SelectableSet.rects;
-        const elDsRects = SelectableSet.rectTest;
+        const elDsRects = SelectableSet.rectRow;
         const selectorRect = Selector.rect;
         const select = new Map();
         const unselect = new Map();

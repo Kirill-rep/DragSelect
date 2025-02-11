@@ -40,7 +40,7 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
-  private _rectTest?: Map<E, DSBoundingRect>
+  private _rectRow?: Map<E, DSBoundingRect>
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     super()
@@ -153,21 +153,21 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
     return Array.from(document.querySelectorAll('.ds')) as E[]
   }
 
-  get rectTest() {
-    if (this._rectTest) return this._rectTest
-    this._rectTest = new Map()
+  get rectRow() {
+    if (this._rectRow) return this._rectRow
+    this._rectRow = new Map()
 
     this.rowElements.forEach((el) => {
-      this._rectTest?.set(el, el.getBoundingClientRect())
+      this._rectRow?.set(el, el.getBoundingClientRect())
     })
 
     if (this._timeout) clearTimeout(this._timeout)
     this._timeout = setTimeout(
-      () => (this._rectTest = undefined),
+      () => (this._rectRow = undefined),
       this.Settings.refreshMemoryRate
     )
 
-    return this._rectTest
+    return this._rectRow
   }
 
   get rects() {

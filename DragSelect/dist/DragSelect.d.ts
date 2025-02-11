@@ -188,7 +188,7 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
     private DS;
     private PS;
     private Settings;
-    private _rectTest?;
+    private _rectRow?;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -208,7 +208,8 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
     getElementRect: (element: E) => DSBoundingRect | DOMRect | undefined;
     get elements(): E[];
     get rowElements(): E[];
-    get rectTest(): Map<E, DSBoundingRect>;
+    get rowFolders(): E[];
+    get rectRow(): Map<E, DSBoundingRect>;
     get rects(): Map<E, DSBoundingRect>;
 }
 
@@ -495,14 +496,14 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     private DS;
     private PS;
     private Settings;
-    private firstOfElement;
-    private currentOfElement;
+    private selectedElements;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
     });
     add(element?: E): this;
     delete(element: E): boolean;
+    private updateSelectedClasses;
     clear: () => void;
     /** Adds/Removes an element. If it is already selected = remove, if not = add. */
     toggle(element: E): E;
@@ -721,8 +722,6 @@ declare class Selection<E extends DSInputElement> {
     private DS;
     private PS;
     private Settings;
-    private test;
-    private elements;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;

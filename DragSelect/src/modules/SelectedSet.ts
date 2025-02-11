@@ -24,16 +24,14 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
-  private firstOfElement: boolean
-  private currentOfElement: DSInputElement | null
+  private selectedElements: E[]
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     super()
     this.DS = DS
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
-    this.firstOfElement = false
-    this.currentOfElement = null
+    this.selectedElements = []
   }
 
   public add(element?: E) {
@@ -45,44 +43,27 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
 
-    this.elements.forEach((el) => {
+    if (element.closest('.ds-folder')) {
+      element.classList.add('ds-selected-folder')
+      this.selectedElements = Array.from(
+        document.querySelectorAll('.ds-selected-folder')
+      ) as E[]
+    } else {
+      element.classList.add(this.Settings.selectedClass)
+      this.selectedElements = Array.from(
+        document.querySelectorAll('.ds-selected')
+      ) as E[]
+    }
+
+    this.selectedElements.forEach((el) => {
       el.classList.remove(
         'selectedFirst',
         'selectedIntermediate',
         'selectedLast'
       )
     })
-    //TODO
-    //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
-    element.classList.add(this.Settings.selectedClass)
 
-    const selectedCells = Array.from(
-      document.querySelectorAll('.ds-selected')
-    ) as E[]
-
-    if (this.elements.length === 1) {
-      if (element) element.classList.add('selectedFirst', 'selectedLast')
-    } else {
-      const elementsArray = selectedCells
-
-      if (elementsArray.length > 0) {
-        if (elementsArray[0]) {
-          elementsArray[0].classList.add('selectedFirst')
-        }
-
-        const lastElement = elementsArray[elementsArray.length - 1]
-        if (lastElement) {
-          lastElement.classList.add('selectedLast')
-        }
-      }
-
-      for (let i = 1; i < elementsArray.length - 1; i++) {
-        if (elementsArray[i])
-          elementsArray[i].classList.add('selectedIntermediate')
-      }
-    }
-
-    this.currentOfElement = element
+    this.updateSelectedClasses(this.selectedElements, element)
 
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`
@@ -99,53 +80,59 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this.PS.publish('Selected:removed:pre', publishData)
     const deleted = super.delete(element)
 
+    if (element.closest('.ds-folder')) {
+      element.classList.remove('ds-selected-folder')
+      this.selectedElements = Array.from(
+        document.querySelectorAll('.ds-selected-folder')
+      ) as E[]
+    } else {
+      element.classList.remove(this.Settings.selectedClass)
+      this.selectedElements = Array.from(
+        document.querySelectorAll('.ds-selected')
+      ) as E[]
+    }
+
     element.classList.remove(
-      this.Settings.selectedClass,
       'selectedFirst',
       'selectedIntermediate',
       'selectedLast'
     )
 
-    //TODO
-    //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
-    const selectedCells = Array.from(
-      document.querySelectorAll('.ds-selected')
-    ) as E[]
-
-    if (this.elements.length === 0) {
-      this.firstOfElement = false
-      this.currentOfElement = null
-    } else {
-      const elementsArray = selectedCells
-      if (elementsArray && elementsArray.length > 0) {
-        if (elementsArray[0]) {
-          elementsArray[0].classList.add('selectedFirst')
-        }
-
-        const lastElement = elementsArray[elementsArray.length - 1]
-        if (lastElement) {
-          lastElement.classList.add('selectedLast')
-
-          if (this.elements.length > 1) {
-            elementsArray[elementsArray.length - 1].classList.remove(
-              'selectedIntermediate'
-            )
-          }
-        }
-        for (let i = 1; i < elementsArray.length - 1; i++) {
-          if (elementsArray[i]) {
-            elementsArray[i].classList.add('selectedIntermediate')
-          }
-        }
-
-        this.currentOfElement = elementsArray[elementsArray.length - 1]
-      }
-    }
+    this.updateSelectedClasses(this.selectedElements, element, true)
 
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`
     this.PS.publish('Selected:removed', publishData)
     return deleted
+  }
+
+  //TODO
+  //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
+  private updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
+    if (elementsArr.length === 1 && !del) {
+      if (element) element.classList.add('selectedFirst', 'selectedLast')
+    } else {
+      if (elementsArr && elementsArr.length > 0) {
+        if (elementsArr[0]) {
+          elementsArr[0].classList.add('selectedFirst')
+        }
+
+        const lastElement = elementsArr[elementsArr.length - 1]
+        if (lastElement) {
+          lastElement.classList.add('selectedLast')
+
+          if (elementsArr.length > 1) {
+            elementsArr[elementsArr.length - 2].classList.remove(
+              'selectedIntermediate'
+            )
+          }
+        }
+      }
+
+      for (let i = 1; i < elementsArr.length - 1; i++) {
+        if (elementsArr[i]) elementsArr[i].classList.add('selectedIntermediate')
+      }
+    }
   }
 
   public clear = () => this.forEach((el) => this.delete(el))
