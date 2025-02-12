@@ -776,6 +776,8 @@ class DropZone {
             item.classList[action](`${this.Settings.droppableClass}`);
             item.classList[action](`${this.Settings.droppableClass}-${this.id}`);
         });
+        if (this.element.closest('.selection'))
+            return;
         this.element.classList[action](`${this.Settings.dropZoneReadyClass}`);
     };
     /** This zone is NOT the target of a drop */
@@ -1669,9 +1671,6 @@ class SelectableSet extends Set {
     get rowElements() {
         return Array.from(document.querySelectorAll('.ds'));
     }
-    get rowFolders() {
-        return Array.from(document.querySelectorAll('.ds'));
-    }
     get rectRow() {
         if (this._rectRow)
             return this._rectRow;
@@ -1720,15 +1719,12 @@ class SelectedSet extends Set {
         };
         this.PS.publish('Selected:added:pre', publishData);
         super.add(element);
-        //TODO
-        //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
+        element.classList.add(this.Settings.selectedClass);
         if (element.closest('.ds-folder')) {
-            element.classList.add('ds-selected-folder');
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected-folder'));
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
         }
         else {
-            element.classList.add(this.Settings.selectedClass);
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected'));
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
         }
         this.selectedElements.forEach((el) => {
             el.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
@@ -1748,44 +1744,22 @@ class SelectedSet extends Set {
         };
         this.PS.publish('Selected:removed:pre', publishData);
         const deleted = super.delete(element);
+        element.classList.remove(this.Settings.selectedClass);
         if (element.closest('.ds-folder')) {
-            element.classList.remove('ds-selected-folder');
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected-folder'));
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
         }
         else {
-            element.classList.remove(this.Settings.selectedClass);
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected'));
+            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
         }
         element.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
-        //TODO
-        //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
         this.updateSelectedClasses(this.selectedElements, element, true);
-        // const elementsArray = this.selectedElements
-        // console.log(elementsArray)
-        // if (elementsArray && elementsArray.length > 0) {
-        //   if (elementsArray[0]) {
-        //     elementsArray[0].classList.add('selectedFirst')
-        //   }
-        //   const lastElement = elementsArray[elementsArray.length - 1]
-        //   if (lastElement) {
-        //     lastElement.classList.add('selectedLast')
-        //     if (elementsArray.length > 1) {
-        //       elementsArray[elementsArray.length - 2].classList.remove(
-        //         'selectedIntermediate'
-        //       )
-        //     }
-        //   }
-        //   for (let i = 1; i < elementsArray.length - 1; i++) {
-        //     if (elementsArray[i]) {
-        //       elementsArray[i].classList.add('selectedIntermediate')
-        //     }
-        //   }
-        // }
         if (this.Settings.useLayers)
             element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`;
         this.PS.publish('Selected:removed', publishData);
         return deleted;
     }
+    //TODO
+    //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
     updateSelectedClasses(elementsArr, element, del) {
         if (elementsArr.length === 1 && !del) {
             if (element)

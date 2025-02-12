@@ -79,6 +79,7 @@ export default class DropZone<E extends DSInputElement> {
       item.classList[action](`${this.Settings.droppableClass}`)
       item.classList[action](`${this.Settings.droppableClass}-${this.id}`)
     })
+    if (this.element.closest('.selection')) return
     this.element.classList[action](`${this.Settings.dropZoneReadyClass}`)
   }
 

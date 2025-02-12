@@ -208,7 +208,6 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
     getElementRect: (element: E) => DSBoundingRect | DOMRect | undefined;
     get elements(): E[];
     get rowElements(): E[];
-    get rowFolders(): E[];
     get rectRow(): Map<E, DSBoundingRect>;
     get rects(): Map<E, DSBoundingRect>;
 }

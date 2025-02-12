@@ -43,15 +43,15 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
 
+    element.classList.add(this.Settings.selectedClass)
+
     if (element.closest('.ds-folder')) {
-      element.classList.add('ds-selected-folder')
       this.selectedElements = Array.from(
-        document.querySelectorAll('.ds-selected-folder')
+        document.querySelectorAll('.ds-selected.dsFolderSelection')
       ) as E[]
     } else {
-      element.classList.add(this.Settings.selectedClass)
       this.selectedElements = Array.from(
-        document.querySelectorAll('.ds-selected')
+        document.querySelectorAll('.ds-selected:not(.dsFolderSelection)')
       ) as E[]
     }
 
@@ -80,15 +80,15 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this.PS.publish('Selected:removed:pre', publishData)
     const deleted = super.delete(element)
 
+    element.classList.remove(this.Settings.selectedClass)
+
     if (element.closest('.ds-folder')) {
-      element.classList.remove('ds-selected-folder')
       this.selectedElements = Array.from(
-        document.querySelectorAll('.ds-selected-folder')
+        document.querySelectorAll('.ds-selected.dsFolderSelection')
       ) as E[]
     } else {
-      element.classList.remove(this.Settings.selectedClass)
       this.selectedElements = Array.from(
-        document.querySelectorAll('.ds-selected')
+        document.querySelectorAll('.ds-selected:not(.dsFolderSelection)')
       ) as E[]
     }
 
