@@ -81,6 +81,10 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     const deleted = super.delete(element)
 
     element.classList.remove(this.Settings.selectedClass)
+    const row = element.parentElement
+    if (row) {
+      row.classList.remove('selection')
+    }
 
     if (element.closest('.ds-folder')) {
       this.selectedElements = Array.from(

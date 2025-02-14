@@ -1751,6 +1751,10 @@
             this.PS.publish('Selected:removed:pre', publishData);
             const deleted = super.delete(element);
             element.classList.remove(this.Settings.selectedClass);
+            const row = element.parentElement;
+            if (row) {
+                row.classList.remove('selection');
+            }
             if (element.closest('.ds-folder')) {
                 this.selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
             }
