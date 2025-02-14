@@ -2005,7 +2005,9 @@
         start = ({ isDragging }) => {
             if (isDragging)
                 return;
-            const { stores: { PointerStore }, } = this.DS;
+            const { stores: { PointerStore }, Area: { HTMLNode }, } = this.DS;
+            if (HTMLNode.nodeName === '#document')
+                return;
             const pPos = PointerStore.initialValArea;
             updateElementStylePos(this.HTMLNode, vect2rect(pPos, 1));
             this.HTMLNode.style.display = 'block';
