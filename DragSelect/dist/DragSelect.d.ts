@@ -760,7 +760,7 @@ declare class SelectorArea<E extends DSInputElement> {
         PS: PubSub<E>;
     });
     private init;
-    /** Adding / Removing elements to document */
+    /**  Adding / Removing elements to document  */
     private applyElements;
     private clampSelectionArea;
     /** Updates the selectorAreas positions to match the areas */

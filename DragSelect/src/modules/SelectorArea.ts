@@ -53,14 +53,24 @@ export default class SelectorArea<E extends DSInputElement> {
     this.updatePos()
   }
 
-  /** Adding / Removing elements to document */
+  /**  Adding / Removing elements to document  */
   private applyElements = <K extends keyof AppendRemove>(
     method: AppendRemove[K]
   ) => {
     const docEl = document.body ? 'body' : 'documentElement'
     const methodName = `${method}Child` as `${AppendRemove}Child`
-    this.HTMLNode[methodName](this.DS.Selector.HTMLNode)
-    document[docEl][methodName](this.HTMLNode)
+
+    if (method === 'remove' && this.DS.Selector.HTMLNode?.parentNode) {
+      this.HTMLNode[methodName](this.DS.Selector.HTMLNode)
+    }
+    if (method === 'remove' && this.HTMLNode?.parentNode) {
+      document[docEl][methodName](this.HTMLNode)
+    }
+
+    if (method === 'append') {
+      this.HTMLNode[methodName](this.DS.Selector.HTMLNode)
+      document[docEl][methodName](this.HTMLNode)
+    }
   }
 
   private clampSelectionArea = (

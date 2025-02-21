@@ -2266,12 +2266,20 @@ class SelectorArea {
         this.applyElements('append');
         this.updatePos();
     };
-    /** Adding / Removing elements to document */
+    /**  Adding / Removing elements to document  */
     applyElements = (method) => {
         const docEl = document.body ? 'body' : 'documentElement';
         const methodName = `${method}Child`;
-        this.HTMLNode[methodName](this.DS.Selector.HTMLNode);
-        document[docEl][methodName](this.HTMLNode);
+        if (method === 'remove' && this.DS.Selector.HTMLNode?.parentNode) {
+            this.HTMLNode[methodName](this.DS.Selector.HTMLNode);
+        }
+        if (method === 'remove' && this.HTMLNode?.parentNode) {
+            document[docEl][methodName](this.HTMLNode);
+        }
+        if (method === 'append') {
+            this.HTMLNode[methodName](this.DS.Selector.HTMLNode);
+            document[docEl][methodName](this.HTMLNode);
+        }
     };
     clampSelectionArea = (selectionRect) => {
         const containerRect = this.DS.Area.rect;
