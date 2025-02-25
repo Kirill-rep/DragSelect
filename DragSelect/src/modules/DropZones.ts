@@ -42,16 +42,83 @@ export default class DropZones<E extends DSInputElement> {
     this._zones = dropZones.map(
       (zone) => new DropZone({ DS: this.DS, PS: this.PS, ...zone })
     )
+
     this._zones.forEach((zone) => {
       this._zoneByElement.set(zone.element, zone)
       this._zoneById.set(zone.id, zone)
-      zone.droppables.forEach((droppable) => {
-        const zones = this._zonesByDroppable.get(droppable)
-        if (!zones?.length) return this._zonesByDroppable.set(droppable, [zone])
-        this._zonesByDroppable.set(droppable, [...new Set([...zones, zone])])
-      })
+      // zone.droppables.forEach((droppable) => {
+      //   const zones = this._zonesByDroppable.get(droppable)
+      //   if (!zones?.length) return this._zonesByDroppable.set(droppable, [zone])
+      //   this._zonesByDroppable.set(droppable, [...new Set([...zones, zone])])
+      // })
     })
   }
+
+  // const newZonesMap = new Map<string, DSInputDropZone<E>>()
+  // dropZones.forEach((zone) => newZonesMap.set(zone.id, zone))
+
+  // if (this._zones) {
+  //   const updatedZones: DropZone<E>[] = []
+
+  //   this._zones.forEach((existingZone) => {
+  //     const newZone = newZonesMap.get(existingZone.id)
+  //     if (newZone) {
+  //       new DropZone({ DS: this.DS, PS: this.PS, ...newZone })
+  //       updatedZones.push(existingZone)
+  //       newZonesMap.delete(existingZone.id)
+  //     } else {
+  //       existingZone.destroy()
+  //       this._zoneByElement.delete(existingZone.element)
+  //       this._zoneById.delete(existingZone.id)
+  //       existingZone.droppables.forEach((droppable) => {
+  //         const zones = this._zonesByDroppable.get(droppable)
+  //         if (zones) {
+  //           this._zonesByDroppable.set(
+  //             droppable,
+  //             zones.filter((zone) => zone.id !== existingZone.id)
+  //           )
+  //         }
+  //       })
+  //     }
+  //   })
+
+  //   newZonesMap.forEach((newZone) => {
+  //     const zone = new DropZone({ DS: this.DS, PS: this.PS, ...newZone })
+  //     updatedZones.push(zone)
+  //     this._zoneByElement.set(zone.element, zone)
+  //     this._zoneById.set(zone.id, zone)
+  //     zone.droppables.forEach((droppable) => {
+  //       const zones = this._zonesByDroppable.get(droppable)
+  //       if (!zones?.length) {
+  //         this._zonesByDroppable.set(droppable, [zone])
+  //       } else {
+  //         this._zonesByDroppable.set(droppable, [
+  //           ...new Set([...zones, zone]),
+  //         ])
+  //       }
+  //     })
+  //   })
+
+  //   this._zones = updatedZones
+  // } else {
+  //   this._zones = dropZones.map(
+  //     (zone) => new DropZone({ DS: this.DS, PS: this.PS, ...zone })
+  //   )
+  //   this._zones.forEach((zone) => {
+  //     this._zoneByElement.set(zone.element, zone)
+  //     this._zoneById.set(zone.id, zone)
+  //     zone.droppables.forEach((droppable) => {
+  //       const zones = this._zonesByDroppable.get(droppable)
+  //       if (!zones?.length) {
+  //         this._zonesByDroppable.set(droppable, [zone])
+  //       } else {
+  //         this._zonesByDroppable.set(droppable, [
+  //           ...new Set([...zones, zone]),
+  //         ])
+  //       }
+  //     })
+  //   })
+  // }
 
   private _handleDrops = (target?: DropZone<E>) => {
     this._zones?.forEach((zone) => {
@@ -100,7 +167,7 @@ export default class DropZones<E extends DSInputElement> {
   public getItemsInsideById = (zoneId: string, addClasses?: boolean) => {
     const zone = this._zoneById.get(zoneId)
     if (!zone) return console.warn(`[DragSelect] No zone found (id: ${zoneId})`)
-    if (addClasses) zone.handleItemsInsideClasses()
+    // if (addClasses) zone.handleItemsInsideClasses()
     return zone.itemsInside
   }
 

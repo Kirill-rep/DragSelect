@@ -28,6 +28,7 @@ declare class DropZone<E extends DSInputElement> {
         element: E;
         droppables?: E[];
     });
+    private setDropZoneClass;
     private setReadyClasses;
     /** This zone is NOT the target of a drop */
     handleNoDrop: () => void;
@@ -296,7 +297,7 @@ type WithPostfix<T, Postfix extends string> = {
     [K in keyof T as K | `${string & K}${Postfix}`]: T[K];
 };
 type DSSettings<E extends DSInputElement> = WithPostfix<Required<Settings<E>>, ':pre'>;
-type DSSettingsPublishEventNames = "Settings:updated:pre" | "Settings:updated" | `Settings:updated:${string}:pre` | `Settings:updated:${string}`;
+type DSSettingsPublishEventNames = 'Settings:updated:pre' | 'Settings:updated' | `Settings:updated:${string}:pre` | `Settings:updated:${string}`;
 type DSSettingsPublishEventData<E extends DSInputElement> = {
     /** whether this is the initial settings call */
     'settings:init': boolean;

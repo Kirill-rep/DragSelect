@@ -756,16 +756,17 @@ class DropZone {
         if (droppables)
             this.droppables = ensureArray(droppables);
         this.element.classList.add(`${this.Settings.dropZoneClass}`);
-        this.PS.subscribe('Settings:updated:dropZoneClass', ({ settings }) => {
-            if (!this.element)
-                return;
-            this.element.classList.remove(settings['dropZoneClass:pre']);
-            this.element.classList.add(settings.dropZoneClass);
-        });
+        this.PS.subscribe('Settings:updated:dropZoneClass', this.setDropZoneClass);
         this._observers = addModificationObservers(this.parentNodes, debounce(() => (this._rect = undefined), this.Settings.refreshMemoryRate));
         this.PS.subscribe('Interaction:start', this.start);
         this.PS.subscribe('Interaction:end', this.stop);
     }
+    setDropZoneClass = ({ settings }) => {
+        if (!this.element)
+            return;
+        this.element.classList.remove(settings['dropZoneClass:pre']);
+        this.element.classList.add(settings.dropZoneClass);
+    };
     setReadyClasses = (action) => {
         if (this.isDestroyed)
             return;
@@ -842,10 +843,11 @@ class DropZone {
         if (!isDragging || this.isDestroyed)
             return;
         this.setReadyClasses('remove');
-        this.handleItemsInsideClasses();
+        // this.handleItemsInsideClasses()
     };
     destroy() {
         this._observers?.cleanup();
+        this._observers = undefined;
         this.element.classList.remove(`${this.Settings.dropZoneClass}`);
         this.element.classList.remove(`${this.Settings.dropZoneTargetClass}`);
         this.element.classList.remove(`${this.Settings.dropZoneReadyClass}`);
@@ -857,6 +859,12 @@ class DropZone {
         });
         this.PS.unsubscribe('Interaction:start', this.start);
         this.PS.unsubscribe('Interaction:end', this.stop);
+        this.PS.unsubscribe('Settings:updated:dropZoneClass', this.setDropZoneClass);
+        this._itemsDropped = [];
+        this._itemsInside = undefined;
+        this._parentNodes = undefined;
+        this._droppables = undefined;
+        this._rect = undefined;
         this.isDestroyed = true;
     }
     toObject = () => ({
@@ -940,14 +948,74 @@ class DropZones {
         this._zones.forEach((zone) => {
             this._zoneByElement.set(zone.element, zone);
             this._zoneById.set(zone.id, zone);
-            zone.droppables.forEach((droppable) => {
-                const zones = this._zonesByDroppable.get(droppable);
-                if (!zones?.length)
-                    return this._zonesByDroppable.set(droppable, [zone]);
-                this._zonesByDroppable.set(droppable, [...new Set([...zones, zone])]);
-            });
+            // zone.droppables.forEach((droppable) => {
+            //   const zones = this._zonesByDroppable.get(droppable)
+            //   if (!zones?.length) return this._zonesByDroppable.set(droppable, [zone])
+            //   this._zonesByDroppable.set(droppable, [...new Set([...zones, zone])])
+            // })
         });
     };
+    // const newZonesMap = new Map<string, DSInputDropZone<E>>()
+    // dropZones.forEach((zone) => newZonesMap.set(zone.id, zone))
+    // if (this._zones) {
+    //   const updatedZones: DropZone<E>[] = []
+    //   this._zones.forEach((existingZone) => {
+    //     const newZone = newZonesMap.get(existingZone.id)
+    //     if (newZone) {
+    //       new DropZone({ DS: this.DS, PS: this.PS, ...newZone })
+    //       updatedZones.push(existingZone)
+    //       newZonesMap.delete(existingZone.id)
+    //     } else {
+    //       existingZone.destroy()
+    //       this._zoneByElement.delete(existingZone.element)
+    //       this._zoneById.delete(existingZone.id)
+    //       existingZone.droppables.forEach((droppable) => {
+    //         const zones = this._zonesByDroppable.get(droppable)
+    //         if (zones) {
+    //           this._zonesByDroppable.set(
+    //             droppable,
+    //             zones.filter((zone) => zone.id !== existingZone.id)
+    //           )
+    //         }
+    //       })
+    //     }
+    //   })
+    //   newZonesMap.forEach((newZone) => {
+    //     const zone = new DropZone({ DS: this.DS, PS: this.PS, ...newZone })
+    //     updatedZones.push(zone)
+    //     this._zoneByElement.set(zone.element, zone)
+    //     this._zoneById.set(zone.id, zone)
+    //     zone.droppables.forEach((droppable) => {
+    //       const zones = this._zonesByDroppable.get(droppable)
+    //       if (!zones?.length) {
+    //         this._zonesByDroppable.set(droppable, [zone])
+    //       } else {
+    //         this._zonesByDroppable.set(droppable, [
+    //           ...new Set([...zones, zone]),
+    //         ])
+    //       }
+    //     })
+    //   })
+    //   this._zones = updatedZones
+    // } else {
+    //   this._zones = dropZones.map(
+    //     (zone) => new DropZone({ DS: this.DS, PS: this.PS, ...zone })
+    //   )
+    //   this._zones.forEach((zone) => {
+    //     this._zoneByElement.set(zone.element, zone)
+    //     this._zoneById.set(zone.id, zone)
+    //     zone.droppables.forEach((droppable) => {
+    //       const zones = this._zonesByDroppable.get(droppable)
+    //       if (!zones?.length) {
+    //         this._zonesByDroppable.set(droppable, [zone])
+    //       } else {
+    //         this._zonesByDroppable.set(droppable, [
+    //           ...new Set([...zones, zone]),
+    //         ])
+    //       }
+    //     })
+    //   })
+    // }
     _handleDrops = (target) => {
         this._zones?.forEach((zone) => {
             if (zone !== target)
@@ -982,8 +1050,7 @@ class DropZones {
         const zone = this._zoneById.get(zoneId);
         if (!zone)
             return console.warn(`[DragSelect] No zone found (id: ${zoneId})`);
-        if (addClasses)
-            zone.handleItemsInsideClasses();
+        // if (addClasses) zone.handleItemsInsideClasses()
         return zone.itemsInside;
     };
     getKeyboardItemCenter = (isDraggingKeyboard, event) => {
@@ -2530,11 +2597,12 @@ class SettingsStore {
         this.PS.publish('Settings:updated:pre', {
             settings: this._settings,
             'settings:init': Boolean(init),
-            'settings:new': settings
+            'settings:new': settings,
         });
+        // console.log('PubSub subscribers:', this.PS.subscribers)
         this._update({ settings, init });
     };
-    _update = ({ settings = {}, init = false }) => {
+    _update = ({ settings = {}, init = false, }) => {
         const _settings = hydrateSettings(settings, init);
         for (const [key, value] of Object.entries(_settings)) {
             ((key, value) => {
@@ -2549,7 +2617,7 @@ class SettingsStore {
                 const update = {
                     settings: this._settings,
                     'settings:init': init,
-                    'settings:new': settings
+                    'settings:new': settings,
                 };
                 this.PS.publish('Settings:updated', update);
                 this.PS.publish(`Settings:updated:${key}`, update);

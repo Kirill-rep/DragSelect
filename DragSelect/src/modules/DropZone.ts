@@ -18,6 +18,10 @@ export type DSDropZone<E extends DSInputElement> = {
   itemsInside?: E[]
 }
 
+type WithPostfix<T, Postfix extends string> = {
+  [K in keyof T as K | `${string & K}${Postfix}`]: T[K]
+}
+
 export default class DropZone<E extends DSInputElement> {
   public id: string
   public element: E
@@ -54,11 +58,7 @@ export default class DropZone<E extends DSInputElement> {
     if (droppables) this.droppables = ensureArray(droppables)
     this.element.classList.add(`${this.Settings.dropZoneClass}`)
 
-    this.PS.subscribe('Settings:updated:dropZoneClass', ({ settings }) => {
-      if (!this.element) return
-      this.element.classList.remove(settings['dropZoneClass:pre'])
-      this.element.classList.add(settings.dropZoneClass)
-    })
+    this.PS.subscribe('Settings:updated:dropZoneClass', this.setDropZoneClass)
 
     this._observers = addModificationObservers(
       this.parentNodes,
@@ -67,6 +67,12 @@ export default class DropZone<E extends DSInputElement> {
 
     this.PS.subscribe('Interaction:start', this.start)
     this.PS.subscribe('Interaction:end', this.stop)
+  }
+
+  private setDropZoneClass = ({ settings }: any) => {
+    if (!this.element) return
+    this.element.classList.remove(settings['dropZoneClass:pre'])
+    this.element.classList.add(settings.dropZoneClass)
   }
 
   private setReadyClasses = (action: 'add' | 'remove') => {
@@ -146,11 +152,12 @@ export default class DropZone<E extends DSInputElement> {
   private stop = ({ isDragging }: { isDragging: boolean }) => {
     if (!isDragging || this.isDestroyed) return
     this.setReadyClasses('remove')
-    this.handleItemsInsideClasses()
+    // this.handleItemsInsideClasses()
   }
 
   public destroy() {
     this._observers?.cleanup()
+    this._observers = undefined
     this.element.classList.remove(`${this.Settings.dropZoneClass}`)
     this.element.classList.remove(`${this.Settings.dropZoneTargetClass}`)
     this.element.classList.remove(`${this.Settings.dropZoneReadyClass}`)
@@ -162,6 +169,13 @@ export default class DropZone<E extends DSInputElement> {
     })
     this.PS.unsubscribe('Interaction:start', this.start)
     this.PS.unsubscribe('Interaction:end', this.stop)
+    this.PS.unsubscribe('Settings:updated:dropZoneClass', this.setDropZoneClass)
+
+    this._itemsDropped = []
+    this._itemsInside = undefined
+    this._parentNodes = undefined
+    this._droppables = undefined
+    this._rect = undefined
     this.isDestroyed = true
   }
 
