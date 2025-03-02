@@ -61,7 +61,7 @@ export default class SettingsStore<E extends DSInputElement> {
       'settings:init': Boolean(init),
       'settings:new': settings,
     })
-    // console.log('PubSub subscribers:', this.PS.subscribers)
+
     this._update({ settings, init })
   }
 

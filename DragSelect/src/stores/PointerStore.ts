@@ -93,8 +93,9 @@ export default class PointerStore<E extends DSInputElement> {
 
   private reset = (event?: DSEvent) => {
     this.currentVal = this.lastVal = this.getPointerPosition(event)
+    this._isMouseInteraction = false
     // debounce in order "onClick" to work
-    setTimeout(() => (this._isMouseInteraction = false), 100)
+    // setTimeout(() => (this._isMouseInteraction = false), 100)
   }
 
   private _normalizedEvent(event?: DSEvent): MouseEvent | PointerEvent | Touch {

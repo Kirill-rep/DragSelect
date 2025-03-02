@@ -1110,6 +1110,8 @@ class Interaction {
     init = () => this.PS.publish('Interaction:init:pre', { init: true });
     _init = () => {
         this.stop();
+        this.isInteracting = false;
+        this.DS.Selector.HTMLNode.style.display = 'none';
         this.setAreaEventListeners();
         this.PS.publish('Interaction:init', { init: true });
     };
@@ -1411,8 +1413,9 @@ class PointerStore {
     };
     reset = (event) => {
         this.currentVal = this.lastVal = this.getPointerPosition(event);
+        this._isMouseInteraction = false;
         // debounce in order "onClick" to work
-        setTimeout(() => (this._isMouseInteraction = false), 100);
+        // setTimeout(() => (this._isMouseInteraction = false), 100)
     };
     _normalizedEvent(event) {
         // null KeyboardEvents
@@ -2071,7 +2074,6 @@ class Selector {
             return;
         const pPos = PointerStore.initialValArea;
         updateElementStylePos(this.HTMLNode, vect2rect(pPos, 1));
-        this.HTMLNode.style.display = 'block';
         if (this.DS.SelectorArea.HTMLNodeSize) {
             this.ContainerSize = {
                 top: this.DS.SelectorArea.HTMLNodeSize.top,
@@ -2094,6 +2096,12 @@ class Selector {
         const { stores: { ScrollStore, PointerStore }, } = this.DS;
         const { x, y } = this.DS.getCurrentCursorPosition();
         const { x: initX, y: initY } = this.DS.getInitialCursorPosition();
+        if (Math.abs(x - initX) <= 5 && Math.abs(y - initY) <= 5) {
+            return;
+        }
+        if (this.HTMLNode.style.display !== 'block') {
+            this.HTMLNode.style.display = 'block';
+        }
         const initPointerPos = {
             x: initX,
             y: initY,
@@ -2112,6 +2120,45 @@ class Selector {
             updateElementStylePos(this.HTMLNode, pos);
         this._rect = undefined;
     };
+    // private handleEventDown = () => {
+    //   this.start({ isDragging: this.DS.Interaction.isDragging })
+    // }
+    // private setAreaSelectorEventListeners = (area = this.DS.Area.HTMLNode) => {
+    //   if (this.Settings.usePointerEvents)
+    //     area.addEventListener('pointerdown', this.handleEventDown, {
+    //       passive: false,
+    //     })
+    //   else area.addEventListener('mousedown', this.handleEventDown)
+    //   area.addEventListener('touchstart', this.handleEventDown, {
+    //     passive: false,
+    //   })
+    // }
+    // removeAreaSelectorEventListeners = (area = this.DS.Area.HTMLNode) => {
+    //   if (this.Settings.usePointerEvents) {
+    //     area.removeEventListener('pointerdown', this.handleEventDown, {
+    //       // @ts-ignore
+    //       passive: false,
+    //     })
+    //   } else area.removeEventListener('mousedown', this.handleEventDown)
+    //   area.removeEventListener('touchstart', this.handleEventDown, {
+    //     // @ts-ignore
+    //     passive: false,
+    //   })
+    // }
+    // private setDocEventListeners = (area = this.DS.Area.HTMLNode) => {
+    //   if (this.Settings.usePointerEvents) {
+    //     area.addEventListener('pointerup', this.stop)
+    //     area.addEventListener('pointercancel', this.stop)
+    //   } else area.addEventListener('mouseup', this.stop)
+    //   area.addEventListener('touchend', this.stop)
+    // }
+    // private removeDocEventListeners = (area = this.DS.Area.HTMLNode) => {
+    //   if (this.Settings.usePointerEvents) {
+    //     area.removeEventListener('pointerup', this.stop)
+    //     area.removeEventListener('pointercancel', this.stop)
+    //   } else area.removeEventListener('mouseup', this.stop)
+    //   area.removeEventListener('touchend', this.stop)
+    // }
     get rect() {
         if (this._rect)
             return this._rect;
@@ -2218,6 +2265,8 @@ class Selection {
         const unselect = new Map();
         for (const [element, elementRect] of elDsRects) {
             const el = element.querySelector('.ds-selectable');
+            if (!el)
+                return;
             const elRect = el.getBoundingClientRect();
             if (!SelectorArea.isInside(element, elementRect))
                 continue;
@@ -2599,7 +2648,6 @@ class SettingsStore {
             'settings:init': Boolean(init),
             'settings:new': settings,
         });
-        // console.log('PubSub subscribers:', this.PS.subscribers)
         this._update({ settings, init });
     };
     _update = ({ settings = {}, init = false, }) => {

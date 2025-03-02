@@ -65,6 +65,7 @@ export default class Interaction<E extends DSInputElement> {
     this.PS.subscribe('Interaction:start:pre', ({ event }) =>
       this._start(event)
     )
+
     this.PS.subscribe('Interaction:init:pre', this._init)
     this.PS.subscribe('Interaction:end:pre', ({ event }) => this._reset(event))
     this.PS.subscribe('Area:scroll', this.update)
@@ -74,6 +75,8 @@ export default class Interaction<E extends DSInputElement> {
 
   private _init = () => {
     this.stop()
+    this.isInteracting = false
+    this.DS.Selector.HTMLNode.style.display = 'none'
     this.setAreaEventListeners()
     this.PS.publish('Interaction:init', { init: true })
   }

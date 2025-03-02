@@ -70,6 +70,7 @@ export default class Selection<E extends DSInputElement> {
 
     for (const [element, elementRect] of elDsRects) {
       const el = element.querySelector('.ds-selectable') as E
+      if (!el) return
       const elRect = el.getBoundingClientRect()
       if (!SelectorArea.isInside(element, elementRect)) continue
       if (isCollision(elementRect, selectorRect, selectionThreshold)) {
