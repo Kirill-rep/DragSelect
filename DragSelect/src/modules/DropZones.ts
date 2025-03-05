@@ -37,7 +37,13 @@ export default class DropZones<E extends DSInputElement> {
     dropZones: DSInputDropZone<E>[]
   }) => {
     if (!dropZones) return
-    if (this._zones) this._zones.forEach((zone) => zone.destroy())
+    if (this._zones) {
+      this._zones.forEach((zone) => {
+        zone.destroy()
+      })
+      this._zoneByElement.clear()
+      this._zoneById.clear()
+    }
 
     this._zones = dropZones.map(
       (zone) => new DropZone({ DS: this.DS, PS: this.PS, ...zone })
