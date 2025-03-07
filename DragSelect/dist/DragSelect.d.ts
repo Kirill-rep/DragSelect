@@ -702,6 +702,7 @@ declare class Selector<E extends DSInputElement> {
     private PS;
     private Settings;
     private ContainerSize?;
+    private isSelecting;
     HTMLNode: HTMLElement;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
@@ -712,6 +713,7 @@ declare class Selector<E extends DSInputElement> {
     stop: () => void;
     /** Moves the selection to the correct place */
     private update;
+    private captureClick;
     get rect(): DSBoundingRect | DOMRect;
 }
 

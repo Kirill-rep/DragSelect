@@ -1837,8 +1837,6 @@ class SelectedSet extends Set {
         this.PS.publish('Selected:removed', publishData);
         return deleted;
     }
-    //TODO
-    //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
     updateSelectedClasses(elementsArr, element, del) {
         if (elementsArr.length === 1 && !del) {
             if (element)
@@ -2044,6 +2042,7 @@ class Selector {
     PS;
     Settings;
     ContainerSize;
+    isSelecting = false;
     HTMLNode;
     constructor({ DS, PS }) {
         this.DS = DS;
@@ -2093,6 +2092,12 @@ class Selector {
         this.HTMLNode.style.width = '0';
         this.HTMLNode.style.height = '0';
         this.HTMLNode.style.display = 'none';
+        if (this.isSelecting) {
+            this.isSelecting = false;
+            setTimeout(() => {
+                document.removeEventListener('click', this.captureClick, true);
+            }, 0);
+        }
     };
     /** Moves the selection to the correct place */
     update = ({ isDragging }) => {
@@ -2103,6 +2108,10 @@ class Selector {
         const { x: initX, y: initY } = this.DS.getInitialCursorPosition();
         if (Math.abs(x - initX) <= 5 && Math.abs(y - initY) <= 5) {
             return;
+        }
+        if (!this.isSelecting) {
+            this.isSelecting = true;
+            document.addEventListener('click', this.captureClick, true);
         }
         if (this.HTMLNode.style.display !== 'block') {
             this.HTMLNode.style.display = 'block';
@@ -2125,6 +2134,9 @@ class Selector {
             updateElementStylePos(this.HTMLNode, pos);
         this._rect = undefined;
     };
+    captureClick(event) {
+        event.stopPropagation();
+    }
     // private handleEventDown = () => {
     //   this.start({ isDragging: this.DS.Interaction.isDragging })
     // }

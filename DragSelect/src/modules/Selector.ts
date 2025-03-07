@@ -13,6 +13,7 @@ export default class Selector<E extends DSInputElement> {
   private PS: PubSub<E>
   private Settings: DSSettings<E>
   private ContainerSize?: AreaSize
+  private isSelecting = false
   public HTMLNode: HTMLElement
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
@@ -71,6 +72,12 @@ export default class Selector<E extends DSInputElement> {
     this.HTMLNode.style.width = '0'
     this.HTMLNode.style.height = '0'
     this.HTMLNode.style.display = 'none'
+    if (this.isSelecting) {
+      this.isSelecting = false
+      setTimeout(() => {
+        document.removeEventListener('click', this.captureClick, true)
+      }, 0)
+    }
   }
 
   /** Moves the selection to the correct place */
@@ -84,6 +91,10 @@ export default class Selector<E extends DSInputElement> {
 
     if (Math.abs(x - initX) <= 5 && Math.abs(y - initY) <= 5) {
       return
+    }
+    if (!this.isSelecting) {
+      this.isSelecting = true
+      document.addEventListener('click', this.captureClick, true)
     }
 
     if (this.HTMLNode.style.display !== 'block') {
@@ -107,6 +118,10 @@ export default class Selector<E extends DSInputElement> {
     if (pos) updateElementStylePos(this.HTMLNode, pos)
 
     this._rect = undefined
+  }
+
+  private captureClick(event: MouseEvent) {
+    event.stopPropagation()
   }
 
   // private handleEventDown = () => {

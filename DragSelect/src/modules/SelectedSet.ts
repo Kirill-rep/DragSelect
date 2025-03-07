@@ -110,8 +110,6 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     return deleted
   }
 
-  //TODO
-  //Убрать лишние проверки (был баг с несколькими .ds-selected при открытии panelMenu)
   private updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
     if (elementsArr.length === 1 && !del) {
       if (element) element.classList.add('selectedFirst', 'selectedLast')
