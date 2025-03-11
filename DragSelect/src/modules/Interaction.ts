@@ -12,6 +12,8 @@ export type DSInteractionPublishEventNames =
   | 'Interaction:update'
   | 'Interaction:end:pre'
   | 'Interaction:end'
+  | 'Interaction:scroll:pre'
+  | 'Interaction:scroll'
 
 export type DSInteractionPublishEventData = {
   event: InteractionEvent | KeyboardEvent
@@ -20,6 +22,13 @@ export type DSInteractionPublishEventData = {
   /** Whether or not the drag interaction is via keyboard */
   isDraggingKeyboard?: boolean
   key?: string
+  scroll_directions?: DSEdges
+  scroll_multiplier?: number
+}
+
+export type DSInteractionPublishScrollData = {
+  event: InteractionEvent
+  isDragging: boolean
   scroll_directions?: DSEdges
   scroll_multiplier?: number
 }
@@ -33,6 +42,8 @@ export type DSInteractionPublish = {
   'Interaction:update': Partial<DSInteractionPublishEventData>
   'Interaction:end:pre': DSInteractionPublishEventData
   'Interaction:end': DSInteractionPublishEventData
+  'Interaction:scroll:pre': DSInteractionPublishScrollData
+  'Interaction:scroll': DSInteractionPublishScrollData
 }
 
 export type InteractionEvent = MouseEvent | PointerEvent | TouchEvent
@@ -56,6 +67,8 @@ export default class Interaction<E extends DSInputElement> {
     this.PS.subscribe('Settings:updated:area', ({ settings }) => {
       this.removeAreaEventListeners(settings['area:pre'])
       this.setAreaEventListeners(settings['area'])
+      this.removeBodyScrollListener()
+      this.setBodyScrollListener()
     })
     this.PS.subscribe('PointerStore:updated', ({ event }) =>
       this.update({ event })
@@ -78,6 +91,7 @@ export default class Interaction<E extends DSInputElement> {
     this.isInteracting = false
     this.DS.Selector.HTMLNode.style.display = 'none'
     this.setAreaEventListeners()
+    this.setBodyScrollListener()
     this.PS.publish('Interaction:init', { init: true })
   }
 
@@ -124,6 +138,13 @@ export default class Interaction<E extends DSInputElement> {
     })
 
     this.setDocEventListeners()
+  }
+
+  private startScroll = (event: Event) => {
+    this.PS.publish('Interaction:scroll:pre', {
+      event: event as InteractionEvent,
+      isDragging: this.isDragging,
+    })
   }
 
   private isDragEvent = (event: InteractionEvent | KeyboardEvent) => {
@@ -180,6 +201,7 @@ export default class Interaction<E extends DSInputElement> {
 
   stop = (area = this.DS.Area.HTMLNode) => {
     this.removeAreaEventListeners(area)
+    this.removeBodyScrollListener()
     this.removeDocEventListeners()
   }
 
@@ -264,5 +286,13 @@ export default class Interaction<E extends DSInputElement> {
       document.removeEventListener('pointercancel', this.reset)
     } else document.removeEventListener('mouseup', this.reset)
     document.removeEventListener('touchend', this.reset)
+  }
+
+  private setBodyScrollListener = () => {
+    document.body?.addEventListener('scroll', this.startScroll)
+  }
+
+  private removeBodyScrollListener = () => {
+    document.body?.removeEventListener('scroll', this.startScroll)
   }
 }

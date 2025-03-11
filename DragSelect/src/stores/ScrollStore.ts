@@ -4,10 +4,13 @@ import { DSInputElement, Settings, Vect2 } from '../types'
 import { calcVect, num2vect } from '../methods/vect2'
 import { canScroll } from '../methods/canScroll'
 import { getCurrentScroll } from '../methods/getCurrentScroll'
+import { getCurrentWindowScroll } from '../methods/getCurrentWindowScroll'
 
 export default class ScrollStore<E extends DSInputElement> {
   private _initialVal: Vect2 = { x: 0, y: 0 }
+  private _initialValWin: Vect2 = { x: 0, y: 0 }
   private _currentVal: Vect2 = { x: 0, y: 0 }
+  private _currentValWin: Vect2 = { x: 0, y: 0 }
   private _canScroll?: boolean
   private DS: DragSelect<E>
   private PS: PubSub<E>
@@ -29,18 +32,21 @@ export default class ScrollStore<E extends DSInputElement> {
   private init = () => this.addListeners()
 
   private addListeners = () =>
-    this.DS.Area.HTMLNode.addEventListener('scroll', this.update)
+    document.body?.addEventListener('scroll', this.update)
   private removeListeners = () =>
-    this.DS.Area.HTMLNode.removeEventListener('scroll', this.update)
+    document.body?.removeEventListener('scroll', this.update)
 
   private start = () => {
     this._currentVal = this._initialVal = getCurrentScroll(
       this.DS.Area.HTMLNode
     )
+    this._currentValWin = this._initialValWin = getCurrentWindowScroll()
   }
 
-  private update = () =>
-    (this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode))
+  private update = () => {
+    this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode)
+    this._currentValWin = getCurrentWindowScroll()
+  }
 
   public stop = () => {
     this.reset()
@@ -49,6 +55,7 @@ export default class ScrollStore<E extends DSInputElement> {
 
   private reset = () => {
     this._initialVal = { x: 0, y: 0 }
+    this._initialValWin = { x: 0, y: 0 }
     this._canScroll = undefined
   }
 
@@ -74,14 +81,31 @@ export default class ScrollStore<E extends DSInputElement> {
     }
   }
 
+  public get scrollAmountWin() {
+    const scrollDiffWin = calcVect(this.currentValWin, '-', this.initialValWin)
+
+    return {
+      x: scrollDiffWin.x,
+      y: scrollDiffWin.y,
+    }
+  }
+
   private get initialVal() {
     if (!this._initialVal) return { x: 0, y: 0 }
     return this._initialVal
+  }
+  public get initialValWin() {
+    if (!this._initialValWin) return { x: 0, y: 0 }
+    return this._initialValWin
   }
 
   public get currentVal() {
     if (!this._currentVal)
       this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode)
     return this._currentVal
+  }
+  public get currentValWin() {
+    if (!this._currentValWin) this._currentValWin = getCurrentWindowScroll()
+    return this._currentValWin
   }
 }

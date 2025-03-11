@@ -14,6 +14,8 @@ export default class Selector<E extends DSInputElement> {
   private Settings: DSSettings<E>
   private ContainerSize?: AreaSize
   private isSelecting = false
+  public scrollSelector = false
+
   public HTMLNode: HTMLElement
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
@@ -33,6 +35,9 @@ export default class Selector<E extends DSInputElement> {
     this.PS.subscribe('Interaction:start', this.start)
     this.PS.subscribe('Interaction:update', this.update)
     this.PS.subscribe('Interaction:end', this.stop)
+    this.PS.subscribe('Interaction:scroll:pre', ({ isDragging }) => {
+      setTimeout(() => this.updateWithScroll({ isDragging }), 0)
+    })
   }
 
   private attachSelector = () => {
@@ -72,6 +77,7 @@ export default class Selector<E extends DSInputElement> {
     this.HTMLNode.style.width = '0'
     this.HTMLNode.style.height = '0'
     this.HTMLNode.style.display = 'none'
+    this.scrollSelector = false
     if (this.isSelecting) {
       this.isSelecting = false
       setTimeout(() => {
@@ -92,6 +98,10 @@ export default class Selector<E extends DSInputElement> {
     if (Math.abs(x - initX) <= 5 && Math.abs(y - initY) <= 5) {
       return
     }
+    this.scrollSelector = true
+    this.DS.SelectorArea.updatePos()
+    this.scroll()
+
     if (!this.isSelecting) {
       this.isSelecting = true
       document.addEventListener('click', this.captureClick, true)
@@ -100,6 +110,7 @@ export default class Selector<E extends DSInputElement> {
     if (this.HTMLNode.style.display !== 'block') {
       this.HTMLNode.style.display = 'block'
     }
+
     const initPointerPos = {
       x: initX,
       y: initY,
@@ -108,8 +119,53 @@ export default class Selector<E extends DSInputElement> {
       x: x + window.scrollX,
       y: y + window.scrollY,
     }
+
     const pos = getSelectorPosition({
-      scrollAmount: ScrollStore.scrollAmount,
+      scrollAmount: ScrollStore.scrollAmountWin,
+      initialPointerPos: initPointerPos,
+      pointerPos: pointerPos,
+      containerSize: this.ContainerSize,
+    })
+
+    if (pos) updateElementStylePos(this.HTMLNode, pos)
+
+    this._rect = undefined
+  }
+
+  private updateWithScroll = ({ isDragging }: { isDragging?: boolean }) => {
+    if (isDragging || this.DS.continue) return
+    const {
+      stores: { ScrollStore },
+    } = this.DS
+    const { x, y } = this.DS.getCurrentCursorPosition()
+    const { x: initX, y: initY } = this.DS.getInitialCursorPosition()
+
+    if (!this.scrollSelector) {
+      return
+    }
+    this.DS.SelectorArea.updatePos()
+    this.scroll()
+
+    if (!this.isSelecting) {
+      this.isSelecting = true
+      document.addEventListener('click', this.captureClick, true)
+    }
+
+    if (this.HTMLNode.style.display !== 'block') {
+      this.HTMLNode.style.display = 'block'
+    }
+
+    const initPointerPos = {
+      x: initX,
+      y: initY,
+    }
+    const pointerPos = {
+      x: x + window.scrollX,
+      y: y + window.scrollY,
+    }
+
+    const pos = getSelectorPosition({
+      scrollAmount: ScrollStore.scrollAmountWin,
       initialPointerPos: initPointerPos,
       pointerPos: pointerPos,
       containerSize: this.ContainerSize,
@@ -166,6 +222,17 @@ export default class Selector<E extends DSInputElement> {
   //   } else area.removeEventListener('mouseup', this.stop)
   //   area.removeEventListener('touchend', this.stop)
   // }
+
+  private scroll() {
+    if (this.DS?.SelectorArea.HTMLNodeSize) {
+      this.ContainerSize = {
+        top: this.DS.SelectorArea.HTMLNodeSize.top,
+        left: this.DS.SelectorArea.HTMLNodeSize.left,
+        width: this.DS.SelectorArea.HTMLNodeSize.width,
+        height: this.DS.SelectorArea.HTMLNodeSize.height,
+      }
+    }
+  }
 
   public get rect() {
     if (this._rect) return this._rect

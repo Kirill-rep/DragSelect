@@ -212,7 +212,7 @@ export default class Area<E extends DSInputElement> {
 
   /** The element rect (caches result) (without scrollbar or borders) */
   public get rect() {
-    if (this._rect) return this._rect
+    // if (this._rect) return this._rect
     return (this._rect = getAreaRect(
       this.HTMLNode,
       this.DS.stores.SettingsStore.s.zoom

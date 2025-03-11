@@ -1,5 +1,6 @@
 import DragSelect from '../DragSelect'
 import { createSelectorAreaElement } from '../methods/createSelectorAreaElement'
+import { getAreaRect } from '../methods/getAreaRect'
 import { getOverflowEdges } from '../methods/getOverflowEdges'
 import { isCollision } from '../methods/isCollision'
 import { vect2rect } from '../methods/vect2'
@@ -35,7 +36,6 @@ export default class SelectorArea<E extends DSInputElement> {
       this.HTMLNode.classList.add(settings['selectorAreaClass'])
     })
     this.HTMLNode.classList.add(this.Settings.selectorAreaClass)
-    // this.HTMLNodeSize = { top: 0, left: 0, height: 0, width: 0 }
     this.PS.subscribe('Area:modified', this.updatePos)
     this.PS.subscribe('Area:modified', this.updatePos)
     this.PS.subscribe('Interaction:init', this.init)
@@ -89,7 +89,7 @@ export default class SelectorArea<E extends DSInputElement> {
   }
 
   /** Updates the selectorAreas positions to match the areas */
-  private updatePos = () => {
+  public updatePos = () => {
     this._rect = undefined
     const rect = this.DS.Area.rect
     const border = this.DS.Area.computedBorder

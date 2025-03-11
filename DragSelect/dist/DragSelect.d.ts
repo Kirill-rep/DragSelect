@@ -47,7 +47,7 @@ declare class DropZone<E extends DSInputElement> {
     private set droppables(value);
 }
 
-type DSInteractionPublishEventNames = 'Interaction:init:pre' | 'Interaction:init' | 'Interaction:start:pre' | 'Interaction:start' | 'Interaction:update:pre' | 'Interaction:update' | 'Interaction:end:pre' | 'Interaction:end';
+type DSInteractionPublishEventNames = 'Interaction:init:pre' | 'Interaction:init' | 'Interaction:start:pre' | 'Interaction:start' | 'Interaction:update:pre' | 'Interaction:update' | 'Interaction:end:pre' | 'Interaction:end' | 'Interaction:scroll:pre' | 'Interaction:scroll';
 type DSInteractionPublishEventData = {
     event: InteractionEvent | KeyboardEvent;
     /** Whether the interaction is a drag or a select */
@@ -55,6 +55,12 @@ type DSInteractionPublishEventData = {
     /** Whether or not the drag interaction is via keyboard */
     isDraggingKeyboard?: boolean;
     key?: string;
+    scroll_directions?: DSEdges;
+    scroll_multiplier?: number;
+};
+type DSInteractionPublishScrollData = {
+    event: InteractionEvent;
+    isDragging: boolean;
     scroll_directions?: DSEdges;
     scroll_multiplier?: number;
 };
@@ -67,6 +73,8 @@ type DSInteractionPublish = {
     'Interaction:update': Partial<DSInteractionPublishEventData>;
     'Interaction:end:pre': DSInteractionPublishEventData;
     'Interaction:end': DSInteractionPublishEventData;
+    'Interaction:scroll:pre': DSInteractionPublishScrollData;
+    'Interaction:scroll': DSInteractionPublishScrollData;
 };
 type InteractionEvent = MouseEvent | PointerEvent | TouchEvent;
 declare class Interaction<E extends DSInputElement> {
@@ -87,6 +95,7 @@ declare class Interaction<E extends DSInputElement> {
     private _canInteract;
     private start;
     private _start;
+    private startScroll;
     private isDragEvent;
     /**
      * Triggers when a node is actively selected: <button> nodes that are pressed via the keyboard.
@@ -105,6 +114,8 @@ declare class Interaction<E extends DSInputElement> {
     private removeAreaEventListeners;
     private setDocEventListeners;
     private removeDocEventListeners;
+    private setBodyScrollListener;
+    private removeBodyScrollListener;
 }
 
 type DSPublicPublishAdditionalEventData<E extends DSInputElement> = {
@@ -671,7 +682,9 @@ declare class DropZones<E extends DSInputElement> {
 
 declare class ScrollStore<E extends DSInputElement> {
     private _initialVal;
+    private _initialValWin;
     private _currentVal;
+    private _currentValWin;
     private _canScroll?;
     private DS;
     private PS;
@@ -692,8 +705,14 @@ declare class ScrollStore<E extends DSInputElement> {
         x: number;
         y: number;
     };
+    get scrollAmountWin(): {
+        x: number;
+        y: number;
+    };
     private get initialVal();
+    get initialValWin(): Vect2;
     get currentVal(): Vect2;
+    get currentValWin(): Vect2;
 }
 
 declare class Selector<E extends DSInputElement> {
@@ -703,6 +722,7 @@ declare class Selector<E extends DSInputElement> {
     private Settings;
     private ContainerSize?;
     private isSelecting;
+    scrollSelector: boolean;
     HTMLNode: HTMLElement;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
@@ -713,7 +733,9 @@ declare class Selector<E extends DSInputElement> {
     stop: () => void;
     /** Moves the selection to the correct place */
     private update;
+    private updateWithScroll;
     private captureClick;
+    private scroll;
     get rect(): DSBoundingRect | DOMRect;
 }
 
@@ -767,7 +789,7 @@ declare class SelectorArea<E extends DSInputElement> {
     private applyElements;
     private clampSelectionArea;
     /** Updates the selectorAreas positions to match the areas */
-    private updatePos;
+    updatePos: () => void;
     stop: (remove: boolean) => void;
     private startAutoScroll;
     /** Creates an interval that auto-scrolls while the cursor is near the edge */

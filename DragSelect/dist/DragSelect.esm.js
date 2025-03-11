@@ -301,8 +301,7 @@ class Area {
     }
     /** The element rect (caches result) (without scrollbar or borders) */
     get rect() {
-        if (this._rect)
-            return this._rect;
+        // if (this._rect) return this._rect
         return (this._rect = getAreaRect(this.HTMLNode, this.DS.stores.SettingsStore.s.zoom));
     }
     get parentNodes() {
@@ -1103,6 +1102,8 @@ class Interaction {
         this.PS.subscribe('Settings:updated:area', ({ settings }) => {
             this.removeAreaEventListeners(settings['area:pre']);
             this.setAreaEventListeners(settings['area']);
+            this.removeBodyScrollListener();
+            this.setBodyScrollListener();
         });
         this.PS.subscribe('PointerStore:updated', ({ event }) => this.update({ event }));
         this.PS.subscribe('Selectable:click', this.onClick);
@@ -1118,6 +1119,7 @@ class Interaction {
         this.isInteracting = false;
         this.DS.Selector.HTMLNode.style.display = 'none';
         this.setAreaEventListeners();
+        this.setBodyScrollListener();
         this.PS.publish('Interaction:init', { init: true });
     };
     _canInteract(event) {
@@ -1156,6 +1158,12 @@ class Interaction {
             isDragging: this.isDragging,
         });
         this.setDocEventListeners();
+    };
+    startScroll = (event) => {
+        this.PS.publish('Interaction:scroll:pre', {
+            event: event,
+            isDragging: this.isDragging,
+        });
     };
     isDragEvent = (event) => {
         let clickedElement = null;
@@ -1199,6 +1207,7 @@ class Interaction {
     };
     stop = (area = this.DS.Area.HTMLNode) => {
         this.removeAreaEventListeners(area);
+        this.removeBodyScrollListener();
         this.removeDocEventListeners();
     };
     update = ({ event, scroll_directions, scroll_multiplier, }) => {
@@ -1274,6 +1283,12 @@ class Interaction {
         else
             document.removeEventListener('mouseup', this.reset);
         document.removeEventListener('touchend', this.reset);
+    };
+    setBodyScrollListener = () => {
+        document.body?.addEventListener('scroll', this.startScroll);
+    };
+    removeBodyScrollListener = () => {
+        document.body?.removeEventListener('scroll', this.startScroll);
     };
 }
 
@@ -1560,7 +1575,7 @@ const getDocumentScroll = () => ({
     x: document.body?.scrollLeft || document.documentElement?.scrollLeft || 0,
 });
 
-const getCurrentScroll = area => {
+const getCurrentScroll = (area) => {
     if (!area || area instanceof Document)
         return getDocumentScroll();
     return {
@@ -1588,9 +1603,18 @@ const _canScroll = (el) => {
     return canScroll;
 };
 
+const getCurrentWindowScroll = () => {
+    return {
+        x: getDocumentScroll().x,
+        y: getDocumentScroll().y,
+    };
+};
+
 class ScrollStore {
     _initialVal = { x: 0, y: 0 };
+    _initialValWin = { x: 0, y: 0 };
     _currentVal = { x: 0, y: 0 };
+    _currentValWin = { x: 0, y: 0 };
     _canScroll;
     DS;
     PS;
@@ -1608,18 +1632,23 @@ class ScrollStore {
         this.PS.subscribe('Interaction:end', () => this.reset());
     }
     init = () => this.addListeners();
-    addListeners = () => this.DS.Area.HTMLNode.addEventListener('scroll', this.update);
-    removeListeners = () => this.DS.Area.HTMLNode.removeEventListener('scroll', this.update);
+    addListeners = () => document.body?.addEventListener('scroll', this.update);
+    removeListeners = () => document.body?.removeEventListener('scroll', this.update);
     start = () => {
         this._currentVal = this._initialVal = getCurrentScroll(this.DS.Area.HTMLNode);
+        this._currentValWin = this._initialValWin = getCurrentWindowScroll();
     };
-    update = () => (this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode));
+    update = () => {
+        this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode);
+        this._currentValWin = getCurrentWindowScroll();
+    };
     stop = () => {
         this.reset();
         this.removeListeners();
     };
     reset = () => {
         this._initialVal = { x: 0, y: 0 };
+        this._initialValWin = { x: 0, y: 0 };
         this._canScroll = undefined;
     };
     get canScroll() {
@@ -1637,15 +1666,32 @@ class ScrollStore {
             y: scrollDiff.y + zoomScroll.y,
         };
     }
+    get scrollAmountWin() {
+        const scrollDiffWin = calcVect(this.currentValWin, '-', this.initialValWin);
+        return {
+            x: scrollDiffWin.x,
+            y: scrollDiffWin.y,
+        };
+    }
     get initialVal() {
         if (!this._initialVal)
             return { x: 0, y: 0 };
         return this._initialVal;
     }
+    get initialValWin() {
+        if (!this._initialValWin)
+            return { x: 0, y: 0 };
+        return this._initialValWin;
+    }
     get currentVal() {
         if (!this._currentVal)
             this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode);
         return this._currentVal;
+    }
+    get currentValWin() {
+        if (!this._currentValWin)
+            this._currentValWin = getCurrentWindowScroll();
+        return this._currentValWin;
     }
 }
 
@@ -1944,12 +1990,12 @@ const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos, cont
         return;
     const selectorPos = {};
     const relativeInitialPointerPos = {
-        x: initialPointerPos.x - containerSize.left + scrollAmount.x,
-        y: initialPointerPos.y - containerSize.top + scrollAmount.y,
+        x: initialPointerPos.x - containerSize.left - scrollAmount.x,
+        y: initialPointerPos.y - containerSize.top - scrollAmount.y,
     };
     const relativePointerPos = {
-        x: pointerPos.x - containerSize.left + scrollAmount.x,
-        y: pointerPos.y - containerSize.top + scrollAmount.y,
+        x: pointerPos.x - containerSize.left,
+        y: pointerPos.y - containerSize.top,
     };
     const clampedPointerPos = {
         x: Math.min(Math.max(relativePointerPos.x, 0), containerSize.width),
@@ -1980,49 +2026,40 @@ const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos, cont
     }
     return selectorPos;
 };
-// if (!containerSize) return
-//   const selectorPos: Partial<DSBoundingRect> = {}
-//   const relativeInitialPointerPos = {
-//     x: initialPointerPos.x - containerSize.left,
-//     y: initialPointerPos.y - containerSize.top,
-//   }
-//   const relativePointerPos = {
-//     x: pointerPos.x - containerSize.left,
-//     y: pointerPos.y - containerSize.top,
-//   }
-//   // right
-//   if (relativePointerPos.x > relativeInitialPointerPos.x - scrollAmount.x) {
-//     // 1.
-//     selectorPos.left = Math.max(relativeInitialPointerPos.x - scrollAmount.x, 0) // 2.
-//     selectorPos.width = Math.min(
-//       relativePointerPos.x - relativeInitialPointerPos.x + scrollAmount.x,
-//       containerSize.width - selectorPos.left
-//     ) // 3.
-//     // left
-//   } else {
-//     // 1b.
-//     selectorPos.left = Math.max(relativePointerPos.x, 0) // 2b.
-//     selectorPos.width = Math.min(
-//       relativeInitialPointerPos.x - relativePointerPos.x - scrollAmount.x,
-//       containerSize.width - selectorPos.left
-//     ) // 3b.
-//   }
-//   // bottom
-//   if (relativePointerPos.y > relativeInitialPointerPos.y - scrollAmount.y) {
-//     selectorPos.top = Math.max(relativeInitialPointerPos.y - scrollAmount.y, 0)
-//     selectorPos.height = Math.min(
-//       relativePointerPos.y - relativeInitialPointerPos.y + scrollAmount.y,
-//       containerSize.height - selectorPos.top
-//     )
-//     // top
-//   } else {
-//     selectorPos.top = Math.max(relativePointerPos.y, 0)
-//     selectorPos.height = Math.min(
-//       relativeInitialPointerPos.y - relativePointerPos.y - scrollAmount.y,
-//       containerSize.height - selectorPos.top
-//     )
-//   }
-//   return selectorPos
+// const relativeInitialPointerPos = {
+//   x: initialPointerPos.x - containerSize.left + scrollAmount.x,
+//   y: initialPointerPos.y - containerSize.top + scrollAmount.y,
+// }
+// const relativePointerPos = {
+//   x: pointerPos.x - containerSize.left + scrollAmount.x,
+//   y: pointerPos.y - containerSize.top + scrollAmount.y,
+// }
+// const clampedPointerPos = {
+//   x: Math.min(Math.max(relativePointerPos.x, 0), containerSize.width),
+//   y: Math.min(Math.max(relativePointerPos.y, 0), containerSize.height),
+// }
+// // right
+// if (clampedPointerPos.x >= relativeInitialPointerPos.x) {
+//   // 1.
+//   selectorPos.left = Math.max(relativeInitialPointerPos.x, 0) // 2.
+//   selectorPos.width = clampedPointerPos.x - relativeInitialPointerPos.x // 3.
+//   // left
+// } else {
+//   // 1b.
+//   selectorPos.left = Math.max(clampedPointerPos.x, 0) // 2b.
+//   selectorPos.width = relativeInitialPointerPos.x - clampedPointerPos.x
+//   // 3b.
+// }
+// // bottom
+// if (clampedPointerPos.y >= relativeInitialPointerPos.y) {
+//   selectorPos.top = Math.max(relativeInitialPointerPos.y, 0)
+//   selectorPos.height = clampedPointerPos.y - relativeInitialPointerPos.y
+//   // top
+// } else {
+//   selectorPos.top = Math.max(clampedPointerPos.y, 0)
+//   selectorPos.height = relativeInitialPointerPos.y - clampedPointerPos.y
+// }
+// return selectorPos
 
 /** Updates element style left, top, width, height values according to pos input object */
 var updateElementStylePos = (element, pos) => {
@@ -2043,6 +2080,7 @@ class Selector {
     Settings;
     ContainerSize;
     isSelecting = false;
+    scrollSelector = false;
     HTMLNode;
     constructor({ DS, PS }) {
         this.DS = DS;
@@ -2059,6 +2097,9 @@ class Selector {
         this.PS.subscribe('Interaction:start', this.start);
         this.PS.subscribe('Interaction:update', this.update);
         this.PS.subscribe('Interaction:end', this.stop);
+        this.PS.subscribe('Interaction:scroll:pre', ({ isDragging }) => {
+            setTimeout(() => this.updateWithScroll({ isDragging }), 0);
+        });
     }
     attachSelector = () => {
         if (this.HTMLNode && this.DS.SelectorArea?.HTMLNode)
@@ -2092,6 +2133,7 @@ class Selector {
         this.HTMLNode.style.width = '0';
         this.HTMLNode.style.height = '0';
         this.HTMLNode.style.display = 'none';
+        this.scrollSelector = false;
         if (this.isSelecting) {
             this.isSelecting = false;
             setTimeout(() => {
@@ -2109,6 +2151,9 @@ class Selector {
         if (Math.abs(x - initX) <= 5 && Math.abs(y - initY) <= 5) {
             return;
         }
+        this.scrollSelector = true;
+        this.DS.SelectorArea.updatePos();
+        this.scroll();
         if (!this.isSelecting) {
             this.isSelecting = true;
             document.addEventListener('click', this.captureClick, true);
@@ -2125,7 +2170,43 @@ class Selector {
             y: y + window.scrollY,
         };
         const pos = getSelectorPosition({
-            scrollAmount: ScrollStore.scrollAmount,
+            scrollAmount: ScrollStore.scrollAmountWin,
+            initialPointerPos: initPointerPos,
+            pointerPos: pointerPos,
+            containerSize: this.ContainerSize,
+        });
+        if (pos)
+            updateElementStylePos(this.HTMLNode, pos);
+        this._rect = undefined;
+    };
+    updateWithScroll = ({ isDragging }) => {
+        if (isDragging || this.DS.continue)
+            return;
+        const { stores: { ScrollStore }, } = this.DS;
+        const { x, y } = this.DS.getCurrentCursorPosition();
+        const { x: initX, y: initY } = this.DS.getInitialCursorPosition();
+        if (!this.scrollSelector) {
+            return;
+        }
+        this.DS.SelectorArea.updatePos();
+        this.scroll();
+        if (!this.isSelecting) {
+            this.isSelecting = true;
+            document.addEventListener('click', this.captureClick, true);
+        }
+        if (this.HTMLNode.style.display !== 'block') {
+            this.HTMLNode.style.display = 'block';
+        }
+        const initPointerPos = {
+            x: initX,
+            y: initY,
+        };
+        const pointerPos = {
+            x: x + window.scrollX,
+            y: y + window.scrollY,
+        };
+        const pos = getSelectorPosition({
+            scrollAmount: ScrollStore.scrollAmountWin,
             initialPointerPos: initPointerPos,
             pointerPos: pointerPos,
             containerSize: this.ContainerSize,
@@ -2176,6 +2257,16 @@ class Selector {
     //   } else area.removeEventListener('mouseup', this.stop)
     //   area.removeEventListener('touchend', this.stop)
     // }
+    scroll() {
+        if (this.DS?.SelectorArea.HTMLNodeSize) {
+            this.ContainerSize = {
+                top: this.DS.SelectorArea.HTMLNodeSize.top,
+                left: this.DS.SelectorArea.HTMLNodeSize.left,
+                width: this.DS.SelectorArea.HTMLNodeSize.width,
+                height: this.DS.SelectorArea.HTMLNodeSize.height,
+            };
+        }
+    }
     get rect() {
         if (this._rect)
             return this._rect;
@@ -2249,6 +2340,10 @@ class Selection {
         this.Settings = this.DS.stores.SettingsStore.s;
         this.PS.subscribe('Interaction:start', this.start);
         this.PS.subscribe('Interaction:update', this.update);
+        this.PS.subscribe('Interaction:scroll:pre', ({ isDragging }) => {
+            if (this.DS.Selector.scrollSelector)
+                this.update({ isDragging });
+        });
     }
     /** Stores the previous selection (solves #9) */
     _storePrevious(event) {
@@ -2385,7 +2480,6 @@ class SelectorArea {
             this.HTMLNode.classList.add(settings['selectorAreaClass']);
         });
         this.HTMLNode.classList.add(this.Settings.selectorAreaClass);
-        // this.HTMLNodeSize = { top: 0, left: 0, height: 0, width: 0 }
         this.PS.subscribe('Area:modified', this.updatePos);
         this.PS.subscribe('Area:modified', this.updatePos);
         this.PS.subscribe('Interaction:init', this.init);

@@ -21,6 +21,9 @@ export default class Selection<E extends DSInputElement> {
     this.Settings = this.DS.stores.SettingsStore.s
     this.PS.subscribe('Interaction:start', this.start)
     this.PS.subscribe('Interaction:update', this.update)
+    this.PS.subscribe('Interaction:scroll:pre', ({ isDragging }) => {
+      if (this.DS.Selector.scrollSelector) this.update({ isDragging })
+    })
   }
 
   /** Stores the previous selection (solves #9) */

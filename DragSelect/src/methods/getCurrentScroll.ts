@@ -5,7 +5,7 @@ export type GetCurrentScroll = {
   (area: DSArea): Vect2
 }
 
-export const getCurrentScroll: GetCurrentScroll = area => {
+export const getCurrentScroll: GetCurrentScroll = (area) => {
   if (!area || area instanceof Document) return getDocumentScroll()
   return {
     x: area.scrollLeft >= 0 ? area.scrollLeft : getDocumentScroll().x,
