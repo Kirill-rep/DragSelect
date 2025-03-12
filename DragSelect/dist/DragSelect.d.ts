@@ -722,8 +722,13 @@ declare class Selector<E extends DSInputElement> {
     private Settings;
     private ContainerSize?;
     private isSelecting;
+    private autoScroll;
     scrollSelector: boolean;
     HTMLNode: HTMLElement;
+    private scrollIntervalId;
+    private readonly scrollSpeed;
+    private readonly scrollInterval;
+    private readonly edgeThreshold;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -737,6 +742,9 @@ declare class Selector<E extends DSInputElement> {
     private captureClick;
     private scroll;
     get rect(): DSBoundingRect | DOMRect;
+    private startAutoScroll;
+    private stopAutoScroll;
+    private checkForAutoScroll;
 }
 
 declare class Selection<E extends DSInputElement> {

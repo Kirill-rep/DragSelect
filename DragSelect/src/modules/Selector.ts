@@ -14,9 +14,14 @@ export default class Selector<E extends DSInputElement> {
   private Settings: DSSettings<E>
   private ContainerSize?: AreaSize
   private isSelecting = false
+  private autoScroll = false
   public scrollSelector = false
-
   public HTMLNode: HTMLElement
+
+  private scrollIntervalId: number | null = null
+  private readonly scrollSpeed = 20
+  private readonly scrollInterval = 50
+  private readonly edgeThreshold = -15
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
@@ -78,6 +83,7 @@ export default class Selector<E extends DSInputElement> {
     this.HTMLNode.style.height = '0'
     this.HTMLNode.style.display = 'none'
     this.scrollSelector = false
+    this.stopAutoScroll()
     if (this.isSelecting) {
       this.isSelecting = false
       setTimeout(() => {
@@ -130,6 +136,8 @@ export default class Selector<E extends DSInputElement> {
     if (pos) updateElementStylePos(this.HTMLNode, pos)
 
     this._rect = undefined
+
+    this.checkForAutoScroll({ x, y })
   }
 
   private updateWithScroll = ({ isDragging }: { isDragging?: boolean }) => {
@@ -237,5 +245,44 @@ export default class Selector<E extends DSInputElement> {
   public get rect() {
     if (this._rect) return this._rect
     return (this._rect = this.HTMLNode.getBoundingClientRect())
+  }
+
+  private startAutoScroll = (direction: 'up' | 'down') => {
+    if (this.autoScroll) return
+    this.autoScroll = true
+    // this.stopAutoScroll()
+
+    const scroll = () => {
+      if (direction === 'up') {
+        document.body.scrollBy(0, -this.scrollSpeed)
+      } else {
+        document.body.scrollBy(0, this.scrollSpeed)
+      }
+    }
+
+    this.scrollIntervalId = setInterval(
+      scroll,
+      this.scrollInterval
+    ) as unknown as number
+  }
+
+  private stopAutoScroll = () => {
+    if (this.scrollIntervalId !== null) {
+      clearInterval(this.scrollIntervalId)
+      this.scrollIntervalId = null
+    }
+  }
+
+  private checkForAutoScroll = (pointerPos: { x: number; y: number }) => {
+    const { innerHeight } = window
+
+    if (pointerPos.y < this.edgeThreshold) {
+      this.startAutoScroll('up')
+    } else if (pointerPos.y > innerHeight - this.edgeThreshold) {
+      this.startAutoScroll('down')
+    } else {
+      this.stopAutoScroll()
+      this.autoScroll = false
+    }
   }
 }

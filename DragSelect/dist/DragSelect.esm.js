@@ -2080,8 +2080,13 @@ class Selector {
     Settings;
     ContainerSize;
     isSelecting = false;
+    autoScroll = false;
     scrollSelector = false;
     HTMLNode;
+    scrollIntervalId = null;
+    scrollSpeed = 20;
+    scrollInterval = 50;
+    edgeThreshold = -15;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
@@ -2134,6 +2139,7 @@ class Selector {
         this.HTMLNode.style.height = '0';
         this.HTMLNode.style.display = 'none';
         this.scrollSelector = false;
+        this.stopAutoScroll();
         if (this.isSelecting) {
             this.isSelecting = false;
             setTimeout(() => {
@@ -2178,6 +2184,7 @@ class Selector {
         if (pos)
             updateElementStylePos(this.HTMLNode, pos);
         this._rect = undefined;
+        this.checkForAutoScroll({ x, y });
     };
     updateWithScroll = ({ isDragging }) => {
         if (isDragging || this.DS.continue)
@@ -2272,6 +2279,43 @@ class Selector {
             return this._rect;
         return (this._rect = this.HTMLNode.getBoundingClientRect());
     }
+    startAutoScroll = (direction) => {
+        console.log(direction);
+        if (this.autoScroll)
+            return;
+        this.autoScroll = true;
+        // this.stopAutoScroll()
+        const scroll = () => {
+            if (direction === 'up') {
+                document.body.scrollBy(0, -this.scrollSpeed);
+            }
+            else {
+                document.body.scrollBy(0, this.scrollSpeed);
+            }
+        };
+        this.scrollIntervalId = setInterval(scroll, this.scrollInterval);
+    };
+    stopAutoScroll = () => {
+        if (this.scrollIntervalId !== null) {
+            clearInterval(this.scrollIntervalId);
+            this.scrollIntervalId = null;
+        }
+    };
+    checkForAutoScroll = (pointerPos) => {
+        const { innerHeight } = window;
+        // console.log(pointerPos.x, pointerPos.y)
+        // console.log(innerWidth, innerHeight)
+        if (pointerPos.y < this.edgeThreshold) {
+            this.startAutoScroll('up');
+        }
+        else if (pointerPos.y > innerHeight - this.edgeThreshold) {
+            this.startAutoScroll('down');
+        }
+        else {
+            this.stopAutoScroll();
+            this.autoScroll = false;
+        }
+    };
 }
 
 /** Logic when an element is selected */
@@ -2482,6 +2526,8 @@ class SelectorArea {
         this.HTMLNode.classList.add(this.Settings.selectorAreaClass);
         this.PS.subscribe('Area:modified', this.updatePos);
         this.PS.subscribe('Area:modified', this.updatePos);
+        this.PS.subscribe('Interaction:update', this.updatePos);
+        this.PS.subscribe('Interaction:scroll:pre', this.updatePos);
         this.PS.subscribe('Interaction:init', this.init);
         this.PS.subscribe('Interaction:start', ({ isDraggingKeyboard }) => this.startAutoScroll({ isDraggingKeyboard }));
         this.PS.subscribe('Interaction:end', () => {
