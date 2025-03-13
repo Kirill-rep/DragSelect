@@ -19,7 +19,8 @@ export default class Selector<E extends DSInputElement> {
   public HTMLNode: HTMLElement
 
   private scrollIntervalId: number | null = null
-  private readonly scrollSpeed = 20
+  private scrollSpeed = 0
+  private readonly maxScrollSpeed = 30
   private readonly scrollInterval = 50
   private readonly edgeThreshold = -15
 
@@ -98,6 +99,7 @@ export default class Selector<E extends DSInputElement> {
     const {
       stores: { ScrollStore, PointerStore },
     } = this.DS
+
     const { x, y } = this.DS.getCurrentCursorPosition()
     const { x: initX, y: initY } = this.DS.getInitialCursorPosition()
 
@@ -180,8 +182,25 @@ export default class Selector<E extends DSInputElement> {
     })
 
     if (pos) updateElementStylePos(this.HTMLNode, pos)
-
+    this.updateSelections()
     this._rect = undefined
+  }
+
+  private updateSelections() {
+    setTimeout(() => {
+      const { x, y } = this.DS.getCurrentCursorPosition()
+      const mouseMoveEvent: any = new MouseEvent('mousemove', {
+        clientX: x,
+        clientY: y,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      })
+
+      mouseMoveEvent.isSimulated = true
+
+      document.dispatchEvent(mouseMoveEvent)
+    }, 200)
   }
 
   private captureClick(event: MouseEvent) {
@@ -254,9 +273,9 @@ export default class Selector<E extends DSInputElement> {
 
     const scroll = () => {
       if (direction === 'up') {
-        document.body.scrollBy(0, -this.scrollSpeed)
-      } else {
         document.body.scrollBy(0, this.scrollSpeed)
+      } else {
+        document.body.scrollBy(0, -this.scrollSpeed)
       }
     }
 
@@ -271,18 +290,31 @@ export default class Selector<E extends DSInputElement> {
       clearInterval(this.scrollIntervalId)
       this.scrollIntervalId = null
     }
+    this.scrollSpeed = 0
   }
 
   private checkForAutoScroll = (pointerPos: { x: number; y: number }) => {
     const { innerHeight } = window
 
+    const distanceToTop = pointerPos.y
+    const distanceToBottom = innerHeight - pointerPos.y
+
     if (pointerPos.y < this.edgeThreshold) {
+      this.scrollSpeed = this.calculateScrollSpeed(distanceToTop)
       this.startAutoScroll('up')
     } else if (pointerPos.y > innerHeight - this.edgeThreshold) {
+      this.scrollSpeed = this.calculateScrollSpeed(distanceToBottom)
       this.startAutoScroll('down')
     } else {
       this.stopAutoScroll()
       this.autoScroll = false
     }
+  }
+
+  private calculateScrollSpeed = (distanceToEdge: number) => {
+    return (
+      (this.maxScrollSpeed * (this.edgeThreshold - distanceToEdge)) /
+      this.edgeThreshold
+    )
   }
 }

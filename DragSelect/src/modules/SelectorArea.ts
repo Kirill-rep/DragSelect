@@ -38,8 +38,8 @@ export default class SelectorArea<E extends DSInputElement> {
     this.HTMLNode.classList.add(this.Settings.selectorAreaClass)
     this.PS.subscribe('Area:modified', this.updatePos)
     this.PS.subscribe('Area:modified', this.updatePos)
-    this.PS.subscribe('Interaction:update', this.updatePos)
-    this.PS.subscribe('Interaction:scroll:pre', this.updatePos)
+    // this.PS.subscribe('Interaction:update', this.updatePos)
+    // this.PS.subscribe('Interaction:scroll:pre', this.updatePos)
     this.PS.subscribe('Interaction:init', this.init)
     this.PS.subscribe('Interaction:start', ({ isDraggingKeyboard }) =>
       this.startAutoScroll({ isDraggingKeyboard })

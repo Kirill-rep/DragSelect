@@ -248,24 +248,28 @@ export default class Interaction<E extends DSInputElement> {
 
   private setAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
+    const areaParent = area.parentElement
+    if (!areaParent) return
     if (this.Settings.usePointerEvents)
-      area.addEventListener('pointerdown', this.start, {
+      areaParent.addEventListener('pointerdown', this.start, {
         passive: false,
       })
-    else area.addEventListener('mousedown', this.start)
-    area.addEventListener('touchstart', this.start, {
+    else areaParent.addEventListener('mousedown', this.start)
+    areaParent.addEventListener('touchstart', this.start, {
       passive: false,
     })
   }
   private removeAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
+    const areaParent = area.parentElement
+    if (!areaParent) return
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
     if (this.Settings.usePointerEvents) {
-      area.removeEventListener('pointerdown', this.start, {
+      areaParent.removeEventListener('pointerdown', this.start, {
         // @ts-ignore
         passive: false,
       })
-    } else area.removeEventListener('mousedown', this.start)
-    area.removeEventListener('touchstart', this.start, {
+    } else areaParent.removeEventListener('mousedown', this.start)
+    areaParent.removeEventListener('touchstart', this.start, {
       // @ts-ignore
       passive: false,
     })

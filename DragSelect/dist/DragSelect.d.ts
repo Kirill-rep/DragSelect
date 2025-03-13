@@ -726,7 +726,8 @@ declare class Selector<E extends DSInputElement> {
     scrollSelector: boolean;
     HTMLNode: HTMLElement;
     private scrollIntervalId;
-    private readonly scrollSpeed;
+    private scrollSpeed;
+    private readonly maxScrollSpeed;
     private readonly scrollInterval;
     private readonly edgeThreshold;
     constructor({ DS, PS }: {
@@ -739,12 +740,14 @@ declare class Selector<E extends DSInputElement> {
     /** Moves the selection to the correct place */
     private update;
     private updateWithScroll;
+    private updateSelections;
     private captureClick;
     private scroll;
     get rect(): DSBoundingRect | DOMRect;
     private startAutoScroll;
     private stopAutoScroll;
     private checkForAutoScroll;
+    private calculateScrollSpeed;
 }
 
 declare class Selection<E extends DSInputElement> {

@@ -16,12 +16,15 @@ export const getAreaRect = (area: DSArea, zoom: number): DSBoundingRect => {
     }
 
   const rect = area.getBoundingClientRect()
+  const parent = area.parentElement
+  const areaSelectorHeight = parent ? parent.clientHeight - 135 : null
+
   return {
     top: rect.top,
     left: rect.left,
     bottom: rect.bottom,
     right: rect.right,
     width: (area.clientWidth || rect.width) * zoom,
-    height: (area.clientHeight || rect.height) * zoom,
+    height: (areaSelectorHeight || area.clientHeight || rect.height) * zoom,
   }
 }

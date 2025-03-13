@@ -63,6 +63,7 @@ export default class Area<E extends DSInputElement> {
     paddingRight: CSSStyleDeclaration['paddingRight']
     paddingBottom: CSSStyleDeclaration['paddingBottom']
     paddingLeft: CSSStyleDeclaration['paddingLeft']
+    height: CSSStyleDeclaration['height']
   }
   private _computedBorder?: DSEdgesObj
   private _rect?: DSBoundingRect
@@ -197,6 +198,10 @@ export default class Area<E extends DSInputElement> {
         this.HTMLNode.body || this.HTMLNode.documentElement
       )
     else tempStyles = window.getComputedStyle(this.HTMLNode!)
+
+    const parentNodeArea =
+      this.HTMLNode instanceof Document ? null : this.HTMLNode.parentElement
+
     return (this._computedStyle = {
       borderTopWidth: tempStyles.borderTopWidth,
       borderBottomWidth: tempStyles.borderBottomWidth,
@@ -207,6 +212,9 @@ export default class Area<E extends DSInputElement> {
       paddingRight: tempStyles.paddingRight,
       paddingBottom: tempStyles.paddingBottom,
       paddingLeft: tempStyles.paddingLeft,
+      height: parentNodeArea
+        ? `${parentNodeArea.clientHeight - 120}`
+        : tempStyles.height,
     })
   }
 

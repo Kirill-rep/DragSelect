@@ -113,13 +113,15 @@ const getAreaRect = (area, zoom) => {
             height: window.innerHeight,
         };
     const rect = area.getBoundingClientRect();
+    const parent = area.parentElement;
+    const areaSelectorHeight = parent ? parent.clientHeight - 135 : null;
     return {
         top: rect.top,
         left: rect.left,
         bottom: rect.bottom,
         right: rect.right,
         width: (area.clientWidth || rect.width) * zoom,
-        height: (area.clientHeight || rect.height) * zoom,
+        height: (areaSelectorHeight || area.clientHeight || rect.height) * zoom,
     };
 };
 
@@ -287,6 +289,7 @@ class Area {
             tempStyles = window.getComputedStyle(this.HTMLNode.body || this.HTMLNode.documentElement);
         else
             tempStyles = window.getComputedStyle(this.HTMLNode);
+        const parentNodeArea = this.HTMLNode instanceof Document ? null : this.HTMLNode.parentElement;
         return (this._computedStyle = {
             borderTopWidth: tempStyles.borderTopWidth,
             borderBottomWidth: tempStyles.borderBottomWidth,
@@ -297,6 +300,9 @@ class Area {
             paddingRight: tempStyles.paddingRight,
             paddingBottom: tempStyles.paddingBottom,
             paddingLeft: tempStyles.paddingLeft,
+            height: parentNodeArea
+                ? `${parentNodeArea.clientHeight - 120}`
+                : tempStyles.height,
         });
     }
     /** The element rect (caches result) (without scrollbar or borders) */
@@ -1239,27 +1245,33 @@ class Interaction {
     // Event Listeners
     setAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
         // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
+        const areaParent = area.parentElement;
+        if (!areaParent)
+            return;
         if (this.Settings.usePointerEvents)
-            area.addEventListener('pointerdown', this.start, {
+            areaParent.addEventListener('pointerdown', this.start, {
                 passive: false,
             });
         else
-            area.addEventListener('mousedown', this.start);
-        area.addEventListener('touchstart', this.start, {
+            areaParent.addEventListener('mousedown', this.start);
+        areaParent.addEventListener('touchstart', this.start, {
             passive: false,
         });
     };
     removeAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
+        const areaParent = area.parentElement;
+        if (!areaParent)
+            return;
         // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
         if (this.Settings.usePointerEvents) {
-            area.removeEventListener('pointerdown', this.start, {
+            areaParent.removeEventListener('pointerdown', this.start, {
                 // @ts-ignore
                 passive: false,
             });
         }
         else
-            area.removeEventListener('mousedown', this.start);
-        area.removeEventListener('touchstart', this.start, {
+            areaParent.removeEventListener('mousedown', this.start);
+        areaParent.removeEventListener('touchstart', this.start, {
             // @ts-ignore
             passive: false,
         });
@@ -2084,7 +2096,8 @@ class Selector {
     scrollSelector = false;
     HTMLNode;
     scrollIntervalId = null;
-    scrollSpeed = 20;
+    scrollSpeed = 0;
+    maxScrollSpeed = 30;
     scrollInterval = 50;
     edgeThreshold = -15;
     constructor({ DS, PS }) {
@@ -2220,8 +2233,23 @@ class Selector {
         });
         if (pos)
             updateElementStylePos(this.HTMLNode, pos);
+        this.updateSelections();
         this._rect = undefined;
     };
+    updateSelections() {
+        setTimeout(() => {
+            const { x, y } = this.DS.getCurrentCursorPosition();
+            const mouseMoveEvent = new MouseEvent('mousemove', {
+                clientX: x,
+                clientY: y,
+                bubbles: true,
+                cancelable: true,
+                view: window,
+            });
+            mouseMoveEvent.isSimulated = true;
+            document.dispatchEvent(mouseMoveEvent);
+        }, 200);
+    }
     captureClick(event) {
         event.stopPropagation();
     }
@@ -2280,17 +2308,16 @@ class Selector {
         return (this._rect = this.HTMLNode.getBoundingClientRect());
     }
     startAutoScroll = (direction) => {
-        console.log(direction);
         if (this.autoScroll)
             return;
         this.autoScroll = true;
         // this.stopAutoScroll()
         const scroll = () => {
             if (direction === 'up') {
-                document.body.scrollBy(0, -this.scrollSpeed);
+                document.body.scrollBy(0, this.scrollSpeed);
             }
             else {
-                document.body.scrollBy(0, this.scrollSpeed);
+                document.body.scrollBy(0, -this.scrollSpeed);
             }
         };
         this.scrollIntervalId = setInterval(scroll, this.scrollInterval);
@@ -2300,21 +2327,28 @@ class Selector {
             clearInterval(this.scrollIntervalId);
             this.scrollIntervalId = null;
         }
+        this.scrollSpeed = 0;
     };
     checkForAutoScroll = (pointerPos) => {
         const { innerHeight } = window;
-        // console.log(pointerPos.x, pointerPos.y)
-        // console.log(innerWidth, innerHeight)
+        const distanceToTop = pointerPos.y;
+        const distanceToBottom = innerHeight - pointerPos.y;
         if (pointerPos.y < this.edgeThreshold) {
+            this.scrollSpeed = this.calculateScrollSpeed(distanceToTop);
             this.startAutoScroll('up');
         }
         else if (pointerPos.y > innerHeight - this.edgeThreshold) {
+            this.scrollSpeed = this.calculateScrollSpeed(distanceToBottom);
             this.startAutoScroll('down');
         }
         else {
             this.stopAutoScroll();
             this.autoScroll = false;
         }
+    };
+    calculateScrollSpeed = (distanceToEdge) => {
+        return ((this.maxScrollSpeed * (this.edgeThreshold - distanceToEdge)) /
+            this.edgeThreshold);
     };
 }
 
@@ -2526,8 +2560,8 @@ class SelectorArea {
         this.HTMLNode.classList.add(this.Settings.selectorAreaClass);
         this.PS.subscribe('Area:modified', this.updatePos);
         this.PS.subscribe('Area:modified', this.updatePos);
-        this.PS.subscribe('Interaction:update', this.updatePos);
-        this.PS.subscribe('Interaction:scroll:pre', this.updatePos);
+        // this.PS.subscribe('Interaction:update', this.updatePos)
+        // this.PS.subscribe('Interaction:scroll:pre', this.updatePos)
         this.PS.subscribe('Interaction:init', this.init);
         this.PS.subscribe('Interaction:start', ({ isDraggingKeyboard }) => this.startAutoScroll({ isDraggingKeyboard }));
         this.PS.subscribe('Interaction:end', () => {
