@@ -2018,6 +2018,9 @@ const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos, cont
         // 1.
         selectorPos.left = Math.max(relativeInitialPointerPos.x, 0); // 2.
         selectorPos.width = clampedPointerPos.x - relativeInitialPointerPos.x; // 3.
+        if (relativePointerPos.x > containerSize.width) {
+            selectorPos.width = containerSize.width - relativeInitialPointerPos.x;
+        }
         // left
     }
     else {
@@ -2025,16 +2028,27 @@ const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos, cont
         selectorPos.left = Math.max(clampedPointerPos.x, 0); // 2b.
         selectorPos.width = relativeInitialPointerPos.x - clampedPointerPos.x;
         // 3b.
+        if (relativePointerPos.x < 0) {
+            selectorPos.left = 0;
+            selectorPos.width = relativeInitialPointerPos.x;
+        }
     }
     // bottom
     if (clampedPointerPos.y >= relativeInitialPointerPos.y) {
         selectorPos.top = Math.max(relativeInitialPointerPos.y, 0);
         selectorPos.height = clampedPointerPos.y - relativeInitialPointerPos.y;
+        if (relativePointerPos.y > containerSize.height) {
+            selectorPos.height = containerSize.height - relativeInitialPointerPos.y;
+        }
         // top
     }
     else {
         selectorPos.top = Math.max(clampedPointerPos.y, 0);
         selectorPos.height = relativeInitialPointerPos.y - clampedPointerPos.y;
+        if (relativePointerPos.y < 0) {
+            selectorPos.top = 0;
+            selectorPos.height = relativeInitialPointerPos.y;
+        }
     }
     return selectorPos;
 };
@@ -2075,13 +2089,13 @@ const getSelectorPosition = ({ scrollAmount, initialPointerPos, pointerPos, cont
 
 /** Updates element style left, top, width, height values according to pos input object */
 var updateElementStylePos = (element, pos) => {
-    if (pos.left)
+    if (pos.left !== undefined)
         element.style.left = `${pos.left}px`;
-    if (pos.top)
+    if (pos.top !== undefined)
         element.style.top = `${pos.top}px`;
-    if (pos.width)
+    if (pos.width !== undefined)
         element.style.width = `${pos.width}px`;
-    if (pos.height)
+    if (pos.height !== undefined)
         element.style.height = `${pos.height}px`;
 };
 
@@ -2194,8 +2208,21 @@ class Selector {
             pointerPos: pointerPos,
             containerSize: this.ContainerSize,
         });
-        if (pos)
+        if (pos) {
+            // @ts-ignore
+            if (pos.left < 0)
+                pos.left = 0;
+            // @ts-ignore
+            if (pos.top < 0)
+                pos.top = 0;
+            // @ts-ignore
+            if (pos.width < 0)
+                pos.width = 0;
+            // @ts-ignore
+            if (pos.height < 0)
+                pos.height = 0;
             updateElementStylePos(this.HTMLNode, pos);
+        }
         this._rect = undefined;
         this.checkForAutoScroll({ x, y });
     };

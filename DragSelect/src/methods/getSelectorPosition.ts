@@ -80,22 +80,40 @@ export const getSelectorPosition = ({
     // 1.
     selectorPos.left = Math.max(relativeInitialPointerPos.x, 0) // 2.
     selectorPos.width = clampedPointerPos.x - relativeInitialPointerPos.x // 3.
+
+    if (relativePointerPos.x > containerSize.width) {
+      selectorPos.width = containerSize.width - relativeInitialPointerPos.x
+    }
     // left
   } else {
     // 1b.
     selectorPos.left = Math.max(clampedPointerPos.x, 0) // 2b.
     selectorPos.width = relativeInitialPointerPos.x - clampedPointerPos.x
     // 3b.
+
+    if (relativePointerPos.x < 0) {
+      selectorPos.left = 0
+      selectorPos.width = relativeInitialPointerPos.x
+    }
   }
 
   // bottom
   if (clampedPointerPos.y >= relativeInitialPointerPos.y) {
     selectorPos.top = Math.max(relativeInitialPointerPos.y, 0)
     selectorPos.height = clampedPointerPos.y - relativeInitialPointerPos.y
+
+    if (relativePointerPos.y > containerSize.height) {
+      selectorPos.height = containerSize.height - relativeInitialPointerPos.y
+    }
     // top
   } else {
     selectorPos.top = Math.max(clampedPointerPos.y, 0)
     selectorPos.height = relativeInitialPointerPos.y - clampedPointerPos.y
+
+    if (relativePointerPos.y < 0) {
+      selectorPos.top = 0
+      selectorPos.height = relativeInitialPointerPos.y
+    }
   }
 
   return selectorPos

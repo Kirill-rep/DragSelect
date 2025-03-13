@@ -134,8 +134,18 @@ export default class Selector<E extends DSInputElement> {
       pointerPos: pointerPos,
       containerSize: this.ContainerSize,
     })
+    if (pos) {
+      // @ts-ignore
+      if (pos.left < 0) pos.left = 0
+      // @ts-ignore
+      if (pos.top < 0) pos.top = 0
+      // @ts-ignore
+      if (pos.width < 0) pos.width = 0
+      // @ts-ignore
+      if (pos.height < 0) pos.height = 0
 
-    if (pos) updateElementStylePos(this.HTMLNode, pos)
+      updateElementStylePos(this.HTMLNode, pos)
+    }
 
     this._rect = undefined
 
