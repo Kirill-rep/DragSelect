@@ -20,7 +20,8 @@ export default class Selector<E extends DSInputElement> {
 
   private scrollIntervalId: number | null = null
   private scrollSpeed = 0
-  private readonly maxScrollSpeed = 30
+  private readonly minScrollSpeed = 10
+  private readonly maxScrollSpeed = 20
   private readonly scrollInterval = 50
   private readonly edgeThreshold = 5
 
@@ -322,9 +323,11 @@ export default class Selector<E extends DSInputElement> {
   }
 
   private calculateScrollSpeed = (distanceToEdge: number) => {
-    return (
-      (this.maxScrollSpeed * (this.edgeThreshold - distanceToEdge)) /
-      this.edgeThreshold
-    )
+    const speed =
+      this.minScrollSpeed +
+      (this.maxScrollSpeed - this.minScrollSpeed) *
+        Math.pow((this.edgeThreshold - distanceToEdge) / this.edgeThreshold, 2)
+
+    return Math.min(speed, this.maxScrollSpeed)
   }
 }

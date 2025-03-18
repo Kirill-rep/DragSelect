@@ -2111,7 +2111,8 @@ class Selector {
     HTMLNode;
     scrollIntervalId = null;
     scrollSpeed = 0;
-    maxScrollSpeed = 30;
+    minScrollSpeed = 10;
+    maxScrollSpeed = 20;
     scrollInterval = 50;
     edgeThreshold = 5;
     constructor({ DS, PS }) {
@@ -2374,8 +2375,10 @@ class Selector {
         }
     };
     calculateScrollSpeed = (distanceToEdge) => {
-        return ((this.maxScrollSpeed * (this.edgeThreshold - distanceToEdge)) /
-            this.edgeThreshold);
+        const speed = this.minScrollSpeed +
+            (this.maxScrollSpeed - this.minScrollSpeed) *
+                Math.pow((this.edgeThreshold - distanceToEdge) / this.edgeThreshold, 2);
+        return Math.min(speed, this.maxScrollSpeed);
     };
 }
 

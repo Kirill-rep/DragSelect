@@ -727,6 +727,7 @@ declare class Selector<E extends DSInputElement> {
     HTMLNode: HTMLElement;
     private scrollIntervalId;
     private scrollSpeed;
+    private readonly minScrollSpeed;
     private readonly maxScrollSpeed;
     private readonly scrollInterval;
     private readonly edgeThreshold;
