@@ -2113,7 +2113,7 @@ class Selector {
     scrollSpeed = 0;
     maxScrollSpeed = 30;
     scrollInterval = 50;
-    edgeThreshold = 10;
+    edgeThreshold = 5;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
@@ -2341,10 +2341,10 @@ class Selector {
         // this.stopAutoScroll()
         const scroll = () => {
             if (direction === 'up') {
-                document.body.scrollBy(0, this.scrollSpeed);
+                document.body.scrollBy(0, -this.scrollSpeed);
             }
             else {
-                document.body.scrollBy(0, -this.scrollSpeed);
+                document.body.scrollBy(0, this.scrollSpeed);
             }
         };
         this.scrollIntervalId = setInterval(scroll, this.scrollInterval);

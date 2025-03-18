@@ -22,7 +22,7 @@ export default class Selector<E extends DSInputElement> {
   private scrollSpeed = 0
   private readonly maxScrollSpeed = 30
   private readonly scrollInterval = 50
-  private readonly edgeThreshold = 10
+  private readonly edgeThreshold = 5
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
@@ -283,9 +283,9 @@ export default class Selector<E extends DSInputElement> {
 
     const scroll = () => {
       if (direction === 'up') {
-        document.body.scrollBy(0, this.scrollSpeed)
-      } else {
         document.body.scrollBy(0, -this.scrollSpeed)
+      } else {
+        document.body.scrollBy(0, this.scrollSpeed)
       }
     }
 
