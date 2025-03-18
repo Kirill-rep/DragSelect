@@ -2119,7 +2119,7 @@
         scrollSpeed = 0;
         maxScrollSpeed = 30;
         scrollInterval = 50;
-        edgeThreshold = -1;
+        edgeThreshold = 10;
         constructor({ DS, PS }) {
             this.DS = DS;
             this.PS = PS;
