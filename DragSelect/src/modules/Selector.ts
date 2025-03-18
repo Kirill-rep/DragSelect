@@ -22,7 +22,7 @@ export default class Selector<E extends DSInputElement> {
   private scrollSpeed = 0
   private readonly maxScrollSpeed = 30
   private readonly scrollInterval = 50
-  private readonly edgeThreshold = -15
+  private readonly edgeThreshold = -1
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS

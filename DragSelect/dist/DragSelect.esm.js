@@ -2113,7 +2113,7 @@ class Selector {
     scrollSpeed = 0;
     maxScrollSpeed = 30;
     scrollInterval = 50;
-    edgeThreshold = -15;
+    edgeThreshold = -1;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
