@@ -128,6 +128,7 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
     }
 
     this.start()
+    console.log('start')
   }
 
   // Useful methods for the user
@@ -165,6 +166,7 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
 
   /** Initializes the functionality. Automatically triggered when created. Also, reset the functionality after a teardown */
   public start = () => {
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return
     this.stopped = false
     this.Interaction.init()
   }

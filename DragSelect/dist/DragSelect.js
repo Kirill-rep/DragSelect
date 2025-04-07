@@ -3066,6 +3066,7 @@
                 stylesItem: {},
             };
             this.start();
+            console.log('start');
         }
         // Useful methods for the user
         //////////////////////////////////////////////////////////////////////////////////////
@@ -3084,6 +3085,8 @@
         publish = (eventName, data) => this.PubSub.publish(eventName, data);
         /** Initializes the functionality. Automatically triggered when created. Also, reset the functionality after a teardown */
         start = () => {
+            if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+                return;
             this.stopped = false;
             this.Interaction.init();
         };
