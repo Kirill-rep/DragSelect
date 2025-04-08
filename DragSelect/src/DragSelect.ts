@@ -128,7 +128,6 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
     }
 
     this.start()
-    console.log('start')
   }
 
   // Useful methods for the user

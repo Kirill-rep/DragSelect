@@ -111,28 +111,60 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   }
 
   private updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
-    if (elementsArr.length === 1 && !del) {
-      if (element) element.classList.add('selectedFirst', 'selectedLast')
+    const tr = element.parentElement?.closest('tr')
+    let elementTd: E | HTMLTableCellElement = element
+    let elementsArrTds: E[] | HTMLTableCellElement[] | (E | HTMLElement)[] =
+      elementsArr
+    if (tr) {
+      const tds = Array.from(tr.querySelectorAll('td'))
+      const index = tds.indexOf(element as HTMLTableCellElement)
+      if (index > 1 && tds[1]) {
+        elementTd = tds[1]
+        elementsArrTds = elementsArr.map((el) =>
+          el.parentElement?.closest('tr')
+            ? el.parentElement.querySelectorAll('td')[1]
+            : el
+        )
+        if (del) {
+          elementTd.classList.remove(
+            'selectedFirst',
+            'selectedLast',
+            'selectedIntermediate'
+          )
+        } else if (elementsArrTds.length > 1) {
+          elementsArrTds.forEach((el) => {
+            el.classList.remove(
+              'selectedFirst',
+              'selectedLast',
+              'selectedIntermediate'
+            )
+          })
+        }
+      }
+    }
+    if (elementsArrTds.length === 1 && !del) {
+      if (elementTd) elementTd.classList.add('selectedFirst', 'selectedLast')
     } else {
-      if (elementsArr && elementsArr.length > 0) {
-        if (elementsArr[0]) {
-          elementsArr[0].classList.add('selectedFirst')
+      if (elementsArrTds && elementsArrTds.length > 0) {
+        if (elementsArrTds[0]) {
+          elementsArrTds[0].classList.add('selectedFirst')
         }
 
-        const lastElement = elementsArr[elementsArr.length - 1]
+        const lastElement = elementsArrTds[elementsArrTds.length - 1]
         if (lastElement) {
           lastElement.classList.add('selectedLast')
 
-          if (elementsArr.length > 1) {
-            elementsArr[elementsArr.length - 2].classList.remove(
+          if (elementsArrTds.length > 1) {
+            elementsArrTds[elementsArrTds.length - 2].classList.remove(
               'selectedIntermediate'
             )
           }
         }
       }
 
-      for (let i = 1; i < elementsArr.length - 1; i++) {
-        if (elementsArr[i]) elementsArr[i].classList.add('selectedIntermediate')
+      for (let i = 1; i < elementsArrTds.length - 1; i++) {
+        if (elementsArrTds[i])
+          elementsArrTds[i].classList.add('selectedIntermediate')
       }
     }
   }
