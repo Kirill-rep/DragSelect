@@ -44,7 +44,6 @@ export default class DropZones<E extends DSInputElement> {
       this._zoneByElement.clear()
       this._zoneById.clear()
     }
-    console.log(dropZones)
     this._zones = dropZones.map(
       (zone) => new DropZone({ DS: this.DS, PS: this.PS, ...zone })
     )
