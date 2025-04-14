@@ -960,6 +960,7 @@
                 this._zoneByElement.clear();
                 this._zoneById.clear();
             }
+            console.log(dropZones);
             this._zones = dropZones.map((zone) => new DropZone({ DS: this.DS, PS: this.PS, ...zone }));
             this._zones.forEach((zone) => {
                 this._zoneByElement.set(zone.element, zone);
