@@ -692,7 +692,7 @@
             const elementsFromPoint = document.elementsFromPoint(x, y);
             const dropZoneFromPoint = elementsFromPoint.filter((el) => el.closest('.ds-dropzone-ready'));
             const newReadyDropZone = dropZoneFromPoint.find((element) => element.classList.contains('ds-dropzone-ready'));
-            if (this._readyDropZone && !newReadyDropZone) {
+            if (this._readyDropZone && this._readyDropZone !== newReadyDropZone) {
                 this._readyDropZone.classList.remove('ds-dropzone-ready-drop');
             }
             this._readyDropZone = newReadyDropZone;
@@ -1254,10 +1254,10 @@
             const areaParent = area.parentElement;
             if (!areaParent)
                 return;
-            if (this.Settings.usePointerEvents)
-                areaParent.addEventListener('pointerdown', this.start, {
-                    passive: false,
-                });
+            // if (this.Settings.usePointerEvents)
+            //   areaParent.addEventListener('pointerdown', this.start, {
+            //     passive: false,
+            //   })
             else
                 areaParent.addEventListener('mousedown', this.start);
             areaParent.addEventListener('touchstart', this.start, {
@@ -1284,20 +1284,14 @@
         };
         setDocEventListeners = () => {
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-            if (this.Settings.usePointerEvents) {
-                document.addEventListener('pointerup', this.reset);
-                document.addEventListener('pointercancel', this.reset);
-            }
+            if (this.Settings.usePointerEvents) ;
             else
                 document.addEventListener('mouseup', this.reset);
             document.addEventListener('touchend', this.reset);
         };
         removeDocEventListeners = () => {
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-            if (this.Settings.usePointerEvents) {
-                document.removeEventListener('pointerup', this.reset);
-                document.removeEventListener('pointercancel', this.reset);
-            }
+            if (this.Settings.usePointerEvents) ;
             else
                 document.removeEventListener('mouseup', this.reset);
             document.removeEventListener('touchend', this.reset);
@@ -1332,8 +1326,8 @@
             this.PS.subscribe('Interaction:init', this.init);
         }
         init = () => {
-            document.addEventListener('keydown', this.keydown);
-            document.addEventListener('keyup', this.keyup);
+            // document.addEventListener('keydown', this.keydown)
+            // document.addEventListener('keyup', this.keyup)
             window.addEventListener('blur', this.reset);
         };
         keydown = (event) => {
@@ -1345,12 +1339,11 @@
             this.PS.publish('KeyStore:down', { event, key });
         };
         keyup = (event) => {
-            if (!event.key?.toLocaleLowerCase)
-                return;
-            const key = event.key.toLowerCase();
-            this.PS.publish('KeyStore:up:pre', { event, key });
-            this._currentValues.delete(key);
-            this.PS.publish('KeyStore:up', { event, key });
+            // if (!event.key?.toLocaleLowerCase) return
+            // const key = event.key.toLowerCase()
+            // this.PS.publish('KeyStore:up:pre', { event, key })
+            // this._currentValues.delete(key)
+            // this.PS.publish('KeyStore:up', { event, key })
         };
         stop = () => {
             document.removeEventListener('keydown', this.keydown);
@@ -1405,10 +1398,10 @@
             this.PS.subscribe('Interaction:end', ({ event }) => this.reset(event));
         }
         init = () => {
-            if (this.settings.usePointerEvents)
-                document.addEventListener('pointermove', this.update, { passive: false });
-            else
-                document.addEventListener('mousemove', this.update);
+            // if (this.settings.usePointerEvents)
+            //   document.addEventListener('pointermove', this.update, { passive: false })
+            // else
+            document.addEventListener('mousemove', this.update);
             document.addEventListener('touchmove', this.update, { passive: false });
         };
         start(event) {
@@ -1748,12 +1741,12 @@
             this.PS.publish('Selectable:added:pre', publishData);
             element.classList.add(this.Settings.selectableClass);
             element.addEventListener('click', this._onClick);
-            if (this.Settings.usePointerEvents)
-                element.addEventListener('pointerdown', this._onPointer, {
-                    passive: false,
-                });
-            else
-                element.addEventListener('mousedown', this._onPointer);
+            // if (this.Settings.usePointerEvents)
+            //   element.addEventListener('pointerdown', this._onPointer, {
+            //     passive: false,
+            //   })
+            // else
+            element.addEventListener('mousedown', this._onPointer);
             element.addEventListener('touchstart', this._onPointer, { passive: false });
             if (this.Settings.draggability && !this.Settings.useTransform)
                 handleElementPositionAttribute({
@@ -1922,8 +1915,6 @@
                         });
                     }
                 }
-                console.log(elementTd);
-                console.log(elementsArrTds);
             }
             if (elementsArrTds.length === 1 && !del) {
                 if (elementTd)
@@ -2484,11 +2475,11 @@
         }
         /** Stores the previous selection (solves #9) */
         _storePrevious(event) {
-            const { stores: { KeyStore }, SelectedSet, } = this.DS;
-            if (KeyStore.isMultiSelectKeyPressed(event))
-                this._prevSelectedSet = new Set(SelectedSet);
-            else
-                this._prevSelectedSet = new Set();
+            this.DS;
+            // if (KeyStore.isMultiSelectKeyPressed(event))
+            //   this._prevSelectedSet = new Set(SelectedSet)
+            // else
+            this._prevSelectedSet = new Set();
         }
         start = ({ event, isDragging, }) => {
             if (isDragging)

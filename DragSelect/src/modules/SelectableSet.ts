@@ -73,11 +73,12 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
     element.classList.add(this.Settings.selectableClass)
     element.addEventListener('click', this._onClick)
 
-    if (this.Settings.usePointerEvents)
-      element.addEventListener('pointerdown', this._onPointer, {
-        passive: false,
-      })
-    else element.addEventListener('mousedown', this._onPointer)
+    // if (this.Settings.usePointerEvents)
+    //   element.addEventListener('pointerdown', this._onPointer, {
+    //     passive: false,
+    //   })
+    // else
+    element.addEventListener('mousedown', this._onPointer)
 
     element.addEventListener('touchstart', this._onPointer, { passive: false })
 

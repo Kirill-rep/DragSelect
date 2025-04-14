@@ -224,7 +224,7 @@ declare class SelectableSet<E extends DSInputElement> extends Set<E> {
     get rects(): Map<E, DSBoundingRect>;
 }
 
-type DSKeyStorePublishEventNames = "KeyStore:down:pre" | "KeyStore:down" | "KeyStore:up:pre" | "KeyStore:up";
+type DSKeyStorePublishEventNames = 'KeyStore:down:pre' | 'KeyStore:down' | 'KeyStore:up:pre' | 'KeyStore:up';
 type DSKeyStorePublishEventData = {
     event: KeyboardEvent;
     /** Pressed key (lowercase) */

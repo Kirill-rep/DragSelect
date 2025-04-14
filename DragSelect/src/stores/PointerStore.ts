@@ -43,9 +43,10 @@ export default class PointerStore<E extends DSInputElement> {
   }
 
   private init = () => {
-    if (this.settings.usePointerEvents)
-      document.addEventListener('pointermove', this.update, { passive: false })
-    else document.addEventListener('mousemove', this.update)
+    // if (this.settings.usePointerEvents)
+    //   document.addEventListener('pointermove', this.update, { passive: false })
+    // else
+    document.addEventListener('mousemove', this.update)
 
     document.addEventListener('touchmove', this.update, { passive: false })
   }

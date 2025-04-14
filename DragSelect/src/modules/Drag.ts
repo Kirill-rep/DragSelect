@@ -290,7 +290,7 @@ export default class Drag<E extends DSInputElement> {
       element.classList.contains('ds-dropzone-ready')
     )
 
-    if (this._readyDropZone && !newReadyDropZone) {
+    if (this._readyDropZone && this._readyDropZone !== newReadyDropZone) {
       this._readyDropZone.classList.remove('ds-dropzone-ready-drop')
     }
 

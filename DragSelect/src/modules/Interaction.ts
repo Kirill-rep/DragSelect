@@ -250,10 +250,10 @@ export default class Interaction<E extends DSInputElement> {
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
     const areaParent = area.parentElement
     if (!areaParent) return
-    if (this.Settings.usePointerEvents)
-      areaParent.addEventListener('pointerdown', this.start, {
-        passive: false,
-      })
+    // if (this.Settings.usePointerEvents)
+    //   areaParent.addEventListener('pointerdown', this.start, {
+    //     passive: false,
+    //   })
     else areaParent.addEventListener('mousedown', this.start)
     areaParent.addEventListener('touchstart', this.start, {
       passive: false,
@@ -278,16 +278,16 @@ export default class Interaction<E extends DSInputElement> {
   private setDocEventListeners = () => {
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
     if (this.Settings.usePointerEvents) {
-      document.addEventListener('pointerup', this.reset)
-      document.addEventListener('pointercancel', this.reset)
+      // document.addEventListener('pointerup', this.reset)
+      // document.addEventListener('pointercancel', this.reset)
     } else document.addEventListener('mouseup', this.reset)
     document.addEventListener('touchend', this.reset)
   }
   private removeDocEventListeners = () => {
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
     if (this.Settings.usePointerEvents) {
-      document.removeEventListener('pointerup', this.reset)
-      document.removeEventListener('pointercancel', this.reset)
+      // document.removeEventListener('pointerup', this.reset)
+      // document.removeEventListener('pointercancel', this.reset)
     } else document.removeEventListener('mouseup', this.reset)
     document.removeEventListener('touchend', this.reset)
   }

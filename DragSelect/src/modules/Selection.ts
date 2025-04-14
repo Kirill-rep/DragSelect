@@ -33,9 +33,10 @@ export default class Selection<E extends DSInputElement> {
       SelectedSet,
     } = this.DS
 
-    if (KeyStore.isMultiSelectKeyPressed(event))
-      this._prevSelectedSet = new Set(SelectedSet)
-    else this._prevSelectedSet = new Set()
+    // if (KeyStore.isMultiSelectKeyPressed(event))
+    //   this._prevSelectedSet = new Set(SelectedSet)
+    // else
+    this._prevSelectedSet = new Set()
   }
 
   private start = ({
