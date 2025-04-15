@@ -610,6 +610,7 @@ class Drag {
         this._elements.forEach((el) => {
             el.classList.remove('isDragging');
         });
+        this._readyDropZone?.classList.remove('ds-dropzone-ready-drop');
         this._elements = [];
         this._draggingElement?.remove();
         this._draggingElement = null;
