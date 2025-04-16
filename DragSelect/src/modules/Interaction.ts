@@ -149,10 +149,28 @@ export default class Interaction<E extends DSInputElement> {
 
   private isDragEvent = (event: InteractionEvent | KeyboardEvent) => {
     let clickedElement: E | null = null
-    if (event.target && 'closest' in event.target)
-      clickedElement = (event.target as E).closest(
-        `.${this.Settings.selectableClass}`
-      )
+    let selectionElement: E | null
+    if (event.target && 'closest' in event.target) {
+      const target = event.target as E
+
+      clickedElement = target.closest(`.${this.Settings.selectableClass}`)
+      selectionElement =
+        target.parentElement?.closest(`.selection`) ??
+        target.closest(`.selection`) ??
+        null
+
+      if (!clickedElement && selectionElement) {
+        const nestedSelectable = selectionElement.querySelector(
+          `.${this.Settings.selectableClass}`
+        ) as E | null
+
+        if (nestedSelectable) {
+          clickedElement = nestedSelectable
+        } else {
+          clickedElement = null
+        }
+      }
+    }
 
     if (
       !this.Settings.draggability ||

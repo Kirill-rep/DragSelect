@@ -1180,8 +1180,25 @@
         };
         isDragEvent = (event) => {
             let clickedElement = null;
-            if (event.target && 'closest' in event.target)
-                clickedElement = event.target.closest(`.${this.Settings.selectableClass}`);
+            let selectionElement;
+            if (event.target && 'closest' in event.target) {
+                const target = event.target;
+                clickedElement = target.closest(`.${this.Settings.selectableClass}`);
+                selectionElement =
+                    target.parentElement?.closest(`.selection`) ??
+                        target.closest(`.selection`) ??
+                        null;
+                if (!clickedElement && selectionElement) {
+                    const nestedSelectable = selectionElement.querySelector(`.${this.Settings.selectableClass}`);
+                    if (nestedSelectable) {
+                        clickedElement = nestedSelectable;
+                    }
+                    else {
+                        clickedElement = null;
+                    }
+                }
+            }
+            console.log(clickedElement);
             if (!this.Settings.draggability ||
                 this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) ||
                 !clickedElement)
