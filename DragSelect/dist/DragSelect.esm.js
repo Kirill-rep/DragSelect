@@ -1192,7 +1192,6 @@ class Interaction {
                 }
             }
         }
-        console.log(clickedElement);
         if (!this.Settings.draggability ||
             this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) ||
             !clickedElement)
