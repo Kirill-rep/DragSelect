@@ -106,15 +106,20 @@ export default class KeyStore<E extends DSInputElement> {
   ) {
     if (this.settings.multiSelectMode) return true
 
-    const pressed = this._currentValues.has(key)
+    const modifierKey = this._keyMapping[key]
+    const keyNameForGetModifierState =
+      key.charAt(0).toUpperCase() + key.slice(1)
 
     const modifierFromEvent =
-      event?.[this._keyMapping[key]] ??
-      (event instanceof KeyboardEvent &&
-        event.getModifierState?.(key.charAt(0).toUpperCase() + key.slice(1))) ??
-      false
+      (event &&
+      'getModifierState' in event &&
+      typeof event.getModifierState === 'function'
+        ? event.getModifierState(keyNameForGetModifierState)
+        : false) ||
+      (modifierKey && event?.[modifierKey]) ||
+      this._currentValues.has(key)
 
-    return pressed || modifierFromEvent
+    return modifierFromEvent
   }
 
   public isCtrlOrMetaPressed(
