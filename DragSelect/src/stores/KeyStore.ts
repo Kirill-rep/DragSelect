@@ -60,20 +60,20 @@ export default class KeyStore<E extends DSInputElement> {
     if (!event.key?.toLocaleLowerCase) return
     const key = event.key.toLowerCase()
 
-    const oldTimeout = this._keyTimeouts.get(key)
-    if (oldTimeout) clearTimeout(oldTimeout)
+    // const oldTimeout = this._keyTimeouts.get(key)
+    // if (oldTimeout) clearTimeout(oldTimeout)
 
     this.PS.publish('KeyStore:down:pre', { event, key })
     this._currentValues.add(key)
     this.PS.publish('KeyStore:down', { event, key })
 
-    this._keyTimeouts.set(
-      key,
-      setTimeout(() => {
-        this._currentValues.delete(key)
-        this._keyTimeouts.delete(key)
-      }, 1000)
-    )
+    // this._keyTimeouts.set(
+    //   key,
+    //   setTimeout(() => {
+    //     this._currentValues.delete(key)
+    //     this._keyTimeouts.delete(key)
+    //   }, 1000)
+    // )
   }
 
   private keyup = (event: KeyboardEvent) => {
@@ -118,7 +118,7 @@ export default class KeyStore<E extends DSInputElement> {
         : false) ||
       (modifierKey && event?.[modifierKey]) ||
       this._currentValues.has(key)
-
+    console.log(modifierFromEvent)
     return modifierFromEvent
   }
 
