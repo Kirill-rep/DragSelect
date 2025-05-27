@@ -1428,7 +1428,6 @@
                 : false) ||
                 (modifierKey && event?.[modifierKey]) ||
                 this._currentValues.has(key);
-            console.log(modifierFromEvent);
             return modifierFromEvent;
         }
         isCtrlOrMetaPressed(event) {

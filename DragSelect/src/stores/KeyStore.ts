@@ -121,7 +121,7 @@ export default class KeyStore<E extends DSInputElement> {
         : false) ||
       (modifierKey && event?.[modifierKey]) ||
       this._currentValues.has(key)
-    console.log(modifierFromEvent)
+
     return modifierFromEvent
   }
 
