@@ -24,14 +24,15 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
-  private selectedElements: E[]
+  private _selectedElements: E[]
+  private _isSelecteedElementPass?: boolean
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     super()
     this.DS = DS
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
-    this.selectedElements = []
+    this._selectedElements = []
   }
 
   public add(element?: E) {
@@ -40,30 +41,27 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       items: this.elements,
       item: element,
     }
+    const row = element.parentElement
+    if (row) row.classList.add('selection')
+
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
 
     element.classList.add(this.Settings.selectedClass)
 
     if (element.closest('.ds-folder')) {
-      this.selectedElements = Array.from(
+      this._selectedElements = Array.from(
         document.querySelectorAll('.ds-selected.dsFolderSelection')
       ) as E[]
+      this._isSelecteedElementPass = false
     } else {
-      this.selectedElements = Array.from(
+      this._selectedElements = Array.from(
         document.querySelectorAll('.ds-selected:not(.dsFolderSelection)')
       ) as E[]
+      this._isSelecteedElementPass = true
     }
 
-    this.selectedElements.forEach((el) => {
-      el.classList.remove(
-        'selectedFirst',
-        'selectedIntermediate',
-        'selectedLast'
-      )
-    })
-
-    this.updateSelectedClasses(this.selectedElements, element)
+    this.updateGroups(this._selectedElements, element)
 
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`
@@ -77,37 +75,68 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       items: this.elements,
       item: element,
     }
+    const row = element.parentElement
+    if (row) row.classList.remove('selection')
     this.PS.publish('Selected:removed:pre', publishData)
     const deleted = super.delete(element)
 
     element.classList.remove(this.Settings.selectedClass)
-    const row = element.parentElement
-    if (row) {
-      row.classList.remove('selection')
-    }
 
     if (element.closest('.ds-folder')) {
-      this.selectedElements = Array.from(
+      this._selectedElements = Array.from(
         document.querySelectorAll('.ds-selected.dsFolderSelection')
       ) as E[]
+      this._isSelecteedElementPass = false
     } else {
-      this.selectedElements = Array.from(
+      this._selectedElements = Array.from(
         document.querySelectorAll('.ds-selected:not(.dsFolderSelection)')
       ) as E[]
+      this._isSelecteedElementPass = true
     }
 
-    element.classList.remove(
-      'selectedFirst',
-      'selectedIntermediate',
-      'selectedLast'
-    )
-
-    this.updateSelectedClasses(this.selectedElements, element, true)
+    this.updateGroups(this._selectedElements, element, true)
 
     if (this.Settings.useLayers)
       element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`
     this.PS.publish('Selected:removed', publishData)
     return deleted
+  }
+
+  private updateGroups(elementsArr: E[], element: E, del?: boolean) {
+    if (elementsArr.length === 0) return
+
+    const groups: E[][] = []
+    const currentGroup: E[] = []
+
+    elementsArr.forEach((_, i) => {
+      const currEl = elementsArr[i]
+      const currparentEl = currEl.parentElement
+      let isAdjacent: boolean | undefined
+
+      if (currparentEl) {
+        if (this._isSelecteedElementPass) {
+          isAdjacent =
+            currparentEl.nextElementSibling?.classList.contains('selection')
+        } else {
+          const secondParent =
+            currparentEl.parentElement?.nextElementSibling?.querySelectorAll(
+              '.selection'
+            )
+          isAdjacent = !!secondParent?.length
+        }
+      }
+
+      if (isAdjacent) {
+        currentGroup.push(currEl)
+      } else {
+        groups.push([...currentGroup, currEl])
+        currentGroup.length = 0
+      }
+    })
+
+    groups.forEach((gr) => {
+      this.updateSelectedClasses(gr, element, del)
+    })
   }
 
   private updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
@@ -125,22 +154,23 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
             ? el.parentElement.querySelectorAll('td')[1]
             : el
         )
-        if (del) {
-          elementTd.classList.remove(
-            'selectedFirst',
-            'selectedLast',
-            'selectedIntermediate'
-          )
-        } else if (elementsArrTds.length > 1) {
-          elementsArrTds.forEach((el) => {
-            el.classList.remove(
-              'selectedFirst',
-              'selectedLast',
-              'selectedIntermediate'
-            )
-          })
-        }
       }
+    }
+
+    if (del) {
+      elementTd.classList.remove(
+        'selectedFirst',
+        'selectedLast',
+        'selectedIntermediate'
+      )
+    } else if (elementsArrTds.length > 1) {
+      elementsArrTds.forEach((el) => {
+        el.classList.remove(
+          'selectedFirst',
+          'selectedLast',
+          'selectedIntermediate'
+        )
+      })
     }
     if (elementsArrTds.length === 1 && !del) {
       if (elementTd) elementTd.classList.add('selectedFirst', 'selectedLast')

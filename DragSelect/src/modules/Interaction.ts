@@ -2,6 +2,8 @@ import DragSelect from '../DragSelect'
 import PubSub from './PubSub'
 import { DSEdges, DSInputElement } from '../types'
 import { DSSettings } from '../stores/SettingsStore'
+import { handleSelection } from '../methods/handleSelection'
+import SelectedSet from './SelectedSet'
 
 export type DSInteractionPublishEventNames =
   | 'Interaction:init:pre'
@@ -73,7 +75,14 @@ export default class Interaction<E extends DSInputElement> {
     this.PS.subscribe('PointerStore:updated', ({ event }) =>
       this.update({ event })
     )
-    this.PS.subscribe('Selectable:click', this.onClick)
+    this.PS.subscribe('Selectable:click:pre', (data) => {
+      const { event, element, selectableEl } = data as {
+        event: MouseEvent
+        element: DSInputElement
+        selectableEl: boolean
+      }
+      this.onClick({ event: event, el: element, selectableEl: selectableEl })
+    })
     this.PS.subscribe('Selectable:pointer', ({ event }) => this.start(event))
     this.PS.subscribe('Interaction:start:pre', ({ event }) =>
       this._start(event)
@@ -95,14 +104,17 @@ export default class Interaction<E extends DSInputElement> {
     this.PS.publish('Interaction:init', { init: true })
   }
 
-  private _canInteract(event: KeyboardEvent | InteractionEvent) {
+  private _canInteract(
+    event: KeyboardEvent | InteractionEvent,
+    forced?: boolean
+  ) {
     const isKeyboardClick =
       'clientX' in event &&
       event.clientX === 0 &&
       event.clientY === 0 &&
       event.detail === 0 &&
       event.target
-
+    if (forced) return true
     if (
       ('button' in event && event.button === 2) || // right-clicks
       this.isInteracting || // fix double-click issues
@@ -174,7 +186,8 @@ export default class Interaction<E extends DSInputElement> {
 
     if (
       !this.Settings.draggability ||
-      this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) ||
+      this.DS.stores.KeyStore.isShiftPressed(event) ||
+      this.DS.stores.KeyStore.isCtrlOrMetaPressed(event) ||
       !clickedElement
     )
       return false
@@ -196,25 +209,39 @@ export default class Interaction<E extends DSInputElement> {
    * Triggers when a node is actively selected: <button> nodes that are pressed via the keyboard.
    * Making DragSelect accessible for everyone!
    */
-  private onClick = ({ event }: { event: MouseEvent }) => {
-    if (!this._canInteract(event)) return
-    if (event.detail > 0) return // mouse interaction
+  private onClick = ({
+    event,
+    el,
+    selectableEl,
+  }: {
+    event: MouseEvent
+    el: DSInputElement
+    selectableEl: boolean
+  }) => {
+    if (
+      !this._canInteract(event, !selectableEl) ||
+      !this.DS.stores.KeyStore.isCtrlOrMetaPressed(event)
+    )
+      return
 
-    const {
-      stores: { PointerStore, KeyStore },
-      SelectableSet,
+    if (selectableEl) {
+      event.stopPropagation()
+      return
+    }
+    if ((event.target as HTMLElement).closest('a')) {
+      return
+    }
+
+    const SelectedSet = this.DS
+      .SelectedSet as unknown as SelectedSet<DSInputElement>
+
+    handleSelection({
+      element: el,
+      force: true,
+      multiSelectionToggle: true,
       SelectedSet,
-    } = this.DS
-
-    PointerStore.start(event)
-
-    const node = event.target as E
-    if (node && !SelectableSet.has(node)) return
-
-    if (!KeyStore.isMultiSelectKeyPressed(event)) SelectedSet.clear()
-    if (node) SelectedSet.toggle(node)
-
-    this.reset(event) // simulate mouse-up (that does not exist on keyboard)
+      hoverClassName: this.Settings.hoverClass,
+    })
   }
 
   stop = (area = this.DS.Area.HTMLNode) => {

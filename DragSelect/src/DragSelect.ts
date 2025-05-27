@@ -413,7 +413,9 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
   /** Whether the multi-selection key was pressed */
   public isMultiSelect = (
     event: MouseEvent | TouchEvent | PointerEvent | KeyboardEvent
-  ): boolean => this.stores.KeyStore.isMultiSelectKeyPressed(event)
+  ): boolean =>
+    this.stores.KeyStore.isCtrlOrMetaPressed(event) ||
+    this.stores.KeyStore.isShiftPressed(event)
 
   /** Whether the user is currently drag n dropping elements (instead of selection) */
   public isDragging = (): boolean => this.Interaction.isDragging

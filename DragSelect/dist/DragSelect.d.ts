@@ -236,6 +236,7 @@ type DSKeyStorePublish = {
 declare class KeyStore<E extends DSInputElement> {
     private _currentValues;
     private _keyMapping;
+    private _keyTimeouts;
     private DS;
     private PS;
     private settings;
@@ -253,7 +254,9 @@ declare class KeyStore<E extends DSInputElement> {
     private keyup;
     stop: () => void;
     private reset;
-    isMultiSelectKeyPressed(event?: KeyboardEvent | MouseEvent | PointerEvent | TouchEvent): boolean;
+    private isMultiSelectKeyPressed;
+    isCtrlOrMetaPressed(event?: KeyboardEvent | MouseEvent | PointerEvent | TouchEvent): boolean;
+    isShiftPressed(event?: KeyboardEvent | MouseEvent | PointerEvent | TouchEvent): boolean;
     get currentValues(): string[];
 }
 
@@ -507,13 +510,15 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     private DS;
     private PS;
     private Settings;
-    private selectedElements;
+    private _selectedElements;
+    private _isSelecteedElementPass?;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
     });
     add(element?: E): this;
     delete(element: E): boolean;
+    private updateGroups;
     private updateSelectedClasses;
     clear: () => void;
     /** Adds/Removes an element. If it is already selected = remove, if not = add. */
@@ -617,6 +622,7 @@ declare class Drag<E extends DSInputElement> {
     private _divElementTwo;
     private _readyDropZone;
     private _styles;
+    private _MultiSelect;
     private startDrag;
     DS: DragSelect<E>;
     PS: PubSub<E>;
@@ -625,9 +631,6 @@ declare class Drag<E extends DSInputElement> {
         DS: DragSelect<E>;
         PS: PubSub<E>;
     });
-    private assignDragKeys;
-    private keyboardDrag;
-    private keyboardEnd;
     private start;
     stop: () => void;
     private update;
@@ -719,6 +722,7 @@ declare class Selector<E extends DSInputElement> {
     private _rect?;
     private DS;
     private PS;
+    private _keyPress;
     private Settings;
     private ContainerSize?;
     private isSelecting;

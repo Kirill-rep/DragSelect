@@ -1,5 +1,5 @@
-import SelectedSet from "../modules/SelectedSet"
-import { DSInputElement } from "../types"
+import SelectedSet from '../modules/SelectedSet'
+import { DSInputElement } from '../types'
 
 type Props<E extends DSInputElement> = {
   element: E
@@ -21,7 +21,6 @@ export const handleUnSelection = <E extends DSInputElement>({
 
   const inSelection = SelectedSet.has(element)
   const inPrevSelection = PrevSelectedSet.has(element)
-
   /**
    * Special for issue #9.
    * if a multi-select-key is pressed, ds 'remembers' the last selection and reverts
@@ -29,8 +28,11 @@ export const handleUnSelection = <E extends DSInputElement>({
    * = if item was selected and is not in selection anymore, reselect it
    * = if item was not selected and is not in selection anymore, unselect it
    */
-  if (inSelection && !inPrevSelection) SelectedSet.delete(element)
-  else if (!inSelection && inPrevSelection) SelectedSet.add(element)
+  if (inSelection && !inPrevSelection) {
+    SelectedSet.delete(element)
+  } else if (!inSelection && inPrevSelection) {
+    SelectedSet.add(element)
+  }
 
   element.classList.remove(hoverClassName)
 }

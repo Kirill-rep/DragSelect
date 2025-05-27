@@ -349,22 +349,6 @@ const vect2rect = (vect, dimension = 0) => ({
 });
 const num2vect = (n) => ({ x: n, y: n });
 
-const handleKeyboardDragPosDifference = ({ shiftKey, keyboardDragSpeed, zoom, key, dragKeys, scrollDiff, }) => {
-    const posDirection = { x: 0, y: 0 };
-    const increase = shiftKey
-        ? keyboardDragSpeed * 4 * zoom
-        : keyboardDragSpeed * zoom;
-    if (dragKeys?.left.includes(key))
-        posDirection.x = scrollDiff.x || -increase;
-    if (dragKeys?.right.includes(key))
-        posDirection.x = scrollDiff.x || increase;
-    if (dragKeys?.up.includes(key))
-        posDirection.y = scrollDiff.y || -increase;
-    if (dragKeys?.down.includes(key))
-        posDirection.y = scrollDiff.y || increase;
-    return posDirection;
-};
-
 const getComputedTranslatePositions = (element) => {
     const position = {
         x: 0,
@@ -492,6 +476,7 @@ class Drag {
     _divElementTwo = null;
     _readyDropZone = undefined;
     _styles;
+    _MultiSelect;
     startDrag;
     DS;
     PS;
@@ -501,78 +486,99 @@ class Drag {
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
         this.startDrag = false;
-        this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys);
-        this.assignDragKeys();
+        this._MultiSelect = this.DS.stores.KeyStore;
+        // this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys)
+        // this.assignDragKeys()
         this.PS.subscribe('Interaction:start', this.start);
         this.PS.subscribe('Interaction:end', this.stop);
         this.PS.subscribe('Interaction:update', this.update);
-        this.PS.subscribe('KeyStore:down', this.keyboardDrag);
-        this.PS.subscribe('KeyStore:up', this.keyboardEnd);
+        // this.PS.subscribe('KeyStore:down', this.keyboardDrag)
+        // this.PS.subscribe('KeyStore:up', this.keyboardEnd)
     }
-    assignDragKeys = () => {
-        this._dragKeys = {
-            up: this.Settings.dragKeys.up.map((k) => k.toLowerCase()),
-            down: this.Settings.dragKeys.down.map((k) => k.toLowerCase()),
-            left: this.Settings.dragKeys.left.map((k) => k.toLowerCase()),
-            right: this.Settings.dragKeys.right.map((k) => k.toLowerCase()),
-        };
-        this._dragKeysFlat = [
-            ...this._dragKeys.up,
-            ...this._dragKeys.down,
-            ...this._dragKeys.left,
-            ...this._dragKeys.right,
-        ];
-    };
-    keyboardDrag = ({ event, key, }) => {
-        const _key = key.toLowerCase();
-        if (!this.Settings.keyboardDrag ||
-            !this._dragKeysFlat.includes(_key) ||
-            !this.DS.SelectedSet.size ||
-            !this.Settings.draggability ||
-            this.DS.continue)
-            return;
-        const publishData = {
-            event,
-            isDragging: true,
-            isDraggingKeyboard: true,
-            key,
-        };
-        this.PS.publish(['Interaction:start:pre', 'Interaction:start'], publishData);
-        this._elements = this.DS.getSelection();
-        this._selectionRect = this.DS.Selection.boundingRect;
-        this.handleZIndex(true);
-        let posDirection = handleKeyboardDragPosDifference({
-            shiftKey: this.DS.stores.KeyStore.currentValues.includes('shift'),
-            keyboardDragSpeed: this.Settings.keyboardDragSpeed,
-            zoom: this.Settings.zoom,
-            key: _key,
-            scrollDiff: this._scrollDiff,
-            dragKeys: this._dragKeys,
-        });
-        posDirection = limitDirection({
-            direction: posDirection,
-            containerRect: this.DS.SelectorArea.rect,
-            scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
-            selectionRect: this._selectionRect,
-        });
-        this.moveElements(posDirection);
-        this.PS.publish(['Interaction:update:pre', 'Interaction:update'], publishData);
-    };
-    keyboardEnd = ({ event, key, }) => {
-        const _key = key.toLowerCase();
-        if (!this.Settings.keyboardDrag ||
-            !this._dragKeysFlat.includes(_key) ||
-            !this.DS.SelectedSet.size ||
-            !this.Settings.draggability)
-            return;
-        const publishData = {
-            event,
-            isDragging: this.Settings.draggability,
-            isDraggingKeyboard: true,
-            key,
-        };
-        this.PS.publish(['Interaction:end:pre', 'Interaction:end'], publishData);
-    };
+    // private assignDragKeys = () => {
+    //   this._dragKeys = {
+    //     up: this.Settings.dragKeys.up.map((k) => k.toLowerCase()),
+    //     down: this.Settings.dragKeys.down.map((k) => k.toLowerCase()),
+    //     left: this.Settings.dragKeys.left.map((k) => k.toLowerCase()),
+    //     right: this.Settings.dragKeys.right.map((k) => k.toLowerCase()),
+    //   }
+    //   this._dragKeysFlat = [
+    //     ...this._dragKeys.up,
+    //     ...this._dragKeys.down,
+    //     ...this._dragKeys.left,
+    //     ...this._dragKeys.right,
+    //   ]
+    // }
+    // private keyboardDrag = ({
+    //   event,
+    //   key,
+    // }: {
+    //   event: KeyboardEvent
+    //   key: string
+    // }) => {
+    //   const _key = key.toLowerCase()
+    //   if (
+    //     !this.Settings.keyboardDrag ||
+    //     !this._dragKeysFlat.includes(_key) ||
+    //     !this.DS.SelectedSet.size ||
+    //     !this.Settings.draggability ||
+    //     this.DS.continue
+    //   )
+    //     return
+    //   const publishData = {
+    //     event,
+    //     isDragging: true,
+    //     isDraggingKeyboard: true,
+    //     key,
+    //   }
+    //   this.PS.publish(['Interaction:start:pre', 'Interaction:start'], publishData)
+    //   this._elements = this.DS.getSelection()
+    //   this._selectionRect = this.DS.Selection.boundingRect
+    //   this.handleZIndex(true)
+    //   let posDirection = handleKeyboardDragPosDifference({
+    //     shiftKey: this.DS.stores.KeyStore.currentValues.includes('shift'),
+    //     keyboardDragSpeed: this.Settings.keyboardDragSpeed,
+    //     zoom: this.Settings.zoom,
+    //     key: _key,
+    //     scrollDiff: this._scrollDiff,
+    //     dragKeys: this._dragKeys,
+    //   })
+    //   posDirection = limitDirection({
+    //     direction: posDirection,
+    //     containerRect: this.DS.SelectorArea.rect,
+    //     scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
+    //     selectionRect: this._selectionRect,
+    //   })
+    //   this.moveElements(posDirection)
+    //   this.PS.publish(
+    //     ['Interaction:update:pre', 'Interaction:update'],
+    //     publishData
+    //   )
+    // }
+    // private keyboardEnd = ({
+    //   event,
+    //   key,
+    // }: {
+    //   event: KeyboardEvent
+    //   key: string
+    // }) => {
+    //   return
+    //   const _key = key.toLowerCase()
+    //   if (
+    //     !this.Settings.keyboardDrag ||
+    //     !this._dragKeysFlat.includes(_key) ||
+    //     !this.DS.SelectedSet.size ||
+    //     !this.Settings.draggability
+    //   )
+    //     return
+    //   const publishData = {
+    //     event,
+    //     isDragging: this.Settings.draggability,
+    //     isDraggingKeyboard: true,
+    //     key,
+    //   }
+    //   this.PS.publish(['Interaction:end:pre', 'Interaction:end'], publishData)
+    // }
     start = ({ isDragging, isDraggingKeyboard, }) => {
         if (!isDragging || isDraggingKeyboard)
             return;
@@ -1092,6 +1098,19 @@ class DropZones {
     };
 }
 
+/** Logic when an element is selected */
+const handleSelection = ({ element, force, multiSelectionToggle, SelectedSet, hoverClassName, }) => {
+    if (element.classList.contains(hoverClassName) && !force)
+        return;
+    if (!SelectedSet.has(element)) {
+        SelectedSet.add(element);
+    }
+    else if (multiSelectionToggle) {
+        SelectedSet.delete(element);
+    }
+    element.classList.add(hoverClassName);
+};
+
 class Interaction {
     isInteracting;
     isDragging = false;
@@ -1113,7 +1132,10 @@ class Interaction {
             this.setBodyScrollListener();
         });
         this.PS.subscribe('PointerStore:updated', ({ event }) => this.update({ event }));
-        this.PS.subscribe('Selectable:click', this.onClick);
+        this.PS.subscribe('Selectable:click:pre', (data) => {
+            const { event, element, selectableEl } = data;
+            this.onClick({ event: event, el: element, selectableEl: selectableEl });
+        });
         this.PS.subscribe('Selectable:pointer', ({ event }) => this.start(event));
         this.PS.subscribe('Interaction:start:pre', ({ event }) => this._start(event));
         this.PS.subscribe('Interaction:init:pre', this._init);
@@ -1129,12 +1151,14 @@ class Interaction {
         this.setBodyScrollListener();
         this.PS.publish('Interaction:init', { init: true });
     };
-    _canInteract(event) {
+    _canInteract(event, forced) {
         const isKeyboardClick = 'clientX' in event &&
             event.clientX === 0 &&
             event.clientY === 0 &&
             event.detail === 0 &&
             event.target;
+        if (forced)
+            return true;
         if (('button' in event && event.button === 2) || // right-clicks
             this.isInteracting || // fix double-click issues
             (event.target && !this.DS.SelectorArea.isInside(event.target)) || // fix outside elements issue
@@ -1193,7 +1217,8 @@ class Interaction {
             }
         }
         if (!this.Settings.draggability ||
-            this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) ||
+            this.DS.stores.KeyStore.isShiftPressed(event) ||
+            this.DS.stores.KeyStore.isCtrlOrMetaPressed(event) ||
             !clickedElement)
             return false;
         if (this.Settings.immediateDrag) {
@@ -1212,21 +1237,26 @@ class Interaction {
      * Triggers when a node is actively selected: <button> nodes that are pressed via the keyboard.
      * Making DragSelect accessible for everyone!
      */
-    onClick = ({ event }) => {
-        if (!this._canInteract(event))
+    onClick = ({ event, el, selectableEl, }) => {
+        if (!this._canInteract(event, !selectableEl) ||
+            !this.DS.stores.KeyStore.isCtrlOrMetaPressed(event))
             return;
-        if (event.detail > 0)
-            return; // mouse interaction
-        const { stores: { PointerStore, KeyStore }, SelectableSet, SelectedSet, } = this.DS;
-        PointerStore.start(event);
-        const node = event.target;
-        if (node && !SelectableSet.has(node))
+        if (selectableEl) {
+            event.stopPropagation();
             return;
-        if (!KeyStore.isMultiSelectKeyPressed(event))
-            SelectedSet.clear();
-        if (node)
-            SelectedSet.toggle(node);
-        this.reset(event); // simulate mouse-up (that does not exist on keyboard)
+        }
+        if (event.target.closest('a')) {
+            return;
+        }
+        const SelectedSet = this.DS
+            .SelectedSet;
+        handleSelection({
+            element: el,
+            force: true,
+            multiSelectionToggle: true,
+            SelectedSet,
+            hoverClassName: this.Settings.hoverClass,
+        });
     };
     stop = (area = this.DS.Area.HTMLNode) => {
         this.removeAreaEventListeners(area);
@@ -1318,10 +1348,11 @@ class Interaction {
 class KeyStore {
     _currentValues = new Set();
     _keyMapping = {
-        control: 'ctrlKey',
+        ctrl: 'ctrlKey',
         shift: 'shiftKey',
         meta: 'metaKey',
     };
+    _keyTimeouts = new Map();
     DS;
     PS;
     settings;
@@ -1337,24 +1368,37 @@ class KeyStore {
         this.PS.subscribe('Interaction:init', this.init);
     }
     init = () => {
-        // document.addEventListener('keydown', this.keydown)
-        // document.addEventListener('keyup', this.keyup)
+        document.addEventListener('keydown', this.keydown);
+        document.addEventListener('keyup', this.keyup);
         window.addEventListener('blur', this.reset);
     };
     keydown = (event) => {
         if (!event.key?.toLocaleLowerCase)
             return;
         const key = event.key.toLowerCase();
+        const oldTimeout = this._keyTimeouts.get(key);
+        if (oldTimeout)
+            clearTimeout(oldTimeout);
         this.PS.publish('KeyStore:down:pre', { event, key });
         this._currentValues.add(key);
         this.PS.publish('KeyStore:down', { event, key });
+        this._keyTimeouts.set(key, setTimeout(() => {
+            this._currentValues.delete(key);
+            this._keyTimeouts.delete(key);
+        }, 1000));
     };
     keyup = (event) => {
-        // if (!event.key?.toLocaleLowerCase) return
-        // const key = event.key.toLowerCase()
-        // this.PS.publish('KeyStore:up:pre', { event, key })
-        // this._currentValues.delete(key)
-        // this.PS.publish('KeyStore:up', { event, key })
+        if (!event.key?.toLocaleLowerCase)
+            return;
+        const key = event.key.toLowerCase();
+        this.PS.publish('KeyStore:up:pre', { event, key });
+        this._currentValues.delete(key);
+        this.PS.publish('KeyStore:up', { event, key });
+        const timeout = this._keyTimeouts.get(key);
+        if (timeout) {
+            clearTimeout(timeout);
+            this._keyTimeouts.delete(key);
+        }
     };
     stop = () => {
         document.removeEventListener('keydown', this.keydown);
@@ -1363,15 +1407,22 @@ class KeyStore {
         this.reset();
     };
     reset = () => this._currentValues.clear();
-    isMultiSelectKeyPressed(event) {
+    isMultiSelectKeyPressed(key, event) {
         if (this.settings.multiSelectMode)
             return true;
-        const multiSelectKeys = this.settings.multiSelectKeys?.map((key) => key.toLocaleLowerCase()) ?? [];
-        if (this.currentValues.some((key) => multiSelectKeys.includes(key)))
-            return true;
-        if (event && multiSelectKeys.some((key) => event[this._keyMapping[key]]))
-            return true;
-        return false;
+        const pressed = this._currentValues.has(key);
+        const modifierFromEvent = event?.[this._keyMapping[key]] ??
+            (event instanceof KeyboardEvent &&
+                event.getModifierState?.(key.charAt(0).toUpperCase() + key.slice(1))) ??
+            false;
+        return pressed || modifierFromEvent;
+    }
+    isCtrlOrMetaPressed(event) {
+        return (this.isMultiSelectKeyPressed('ctrl', event) ||
+            this.isMultiSelectKeyPressed('meta', event));
+    }
+    isShiftPressed(event) {
+        return this.isMultiSelectKeyPressed('shift', event);
     }
     get currentValues() {
         return Array.from(this._currentValues.values());
@@ -1751,7 +1802,15 @@ class SelectableSet extends Set {
         };
         this.PS.publish('Selectable:added:pre', publishData);
         element.classList.add(this.Settings.selectableClass);
-        element.addEventListener('click', this._onClick);
+        const isRow = element?.parentElement;
+        if (isRow) {
+            isRow.addEventListener('click', (event) => {
+                this._onClick(event, element, true);
+            });
+            isRow.addEventListener('mousedown', (event) => {
+                this._onClick(event, element, false);
+            });
+        }
         // if (this.Settings.usePointerEvents)
         //   element.addEventListener('pointerdown', this._onPointer, {
         //     passive: false,
@@ -1777,7 +1836,15 @@ class SelectableSet extends Set {
         this.PS.publish('Selectable:removed:pre', publishData);
         element.classList.remove(this.Settings.selectableClass);
         element.classList.remove(this.Settings.hoverClass);
-        element.removeEventListener('click', this._onClick);
+        const isRow = element?.parentElement;
+        if (isRow) {
+            isRow.removeEventListener('click', (event) => {
+                this._onClick(event, element, true);
+            });
+            isRow.removeEventListener('mousedown', (event) => {
+                this._onClick(event, element, false);
+            });
+        }
         if (this.Settings.usePointerEvents)
             element.removeEventListener('pointerdown', this._onPointer, {
                 // @ts-ignore
@@ -1793,9 +1860,11 @@ class SelectableSet extends Set {
         return super.delete(element);
     }
     clear = () => this.forEach((el) => this.delete(el));
-    _onClick = (event // we know it’s only a MouseEvent
-    ) => this.PS.publish(['Selectable:click:pre', 'Selectable:click'], {
+    _onClick = (event, // we know it’s only a MouseEvent
+    element, selectableEl) => this.PS.publish(['Selectable:click:pre', 'Selectable:click'], {
         event: event,
+        element: element,
+        selectableEl,
     });
     _onPointer = (event // we know it’s only an InteractionEvent
     ) => this.PS.publish(['Selectable:pointer:pre', 'Selectable:pointer'], {
@@ -1845,13 +1914,14 @@ class SelectedSet extends Set {
     DS;
     PS;
     Settings;
-    selectedElements;
+    _selectedElements;
+    _isSelecteedElementPass;
     constructor({ DS, PS }) {
         super();
         this.DS = DS;
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
-        this.selectedElements = [];
+        this._selectedElements = [];
     }
     add(element) {
         if (!element || super.has(element))
@@ -1860,19 +1930,21 @@ class SelectedSet extends Set {
             items: this.elements,
             item: element,
         };
+        const row = element.parentElement;
+        if (row)
+            row.classList.add('selection');
         this.PS.publish('Selected:added:pre', publishData);
         super.add(element);
         element.classList.add(this.Settings.selectedClass);
         if (element.closest('.ds-folder')) {
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
+            this._selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
+            this._isSelecteedElementPass = false;
         }
         else {
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
+            this._selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
+            this._isSelecteedElementPass = true;
         }
-        this.selectedElements.forEach((el) => {
-            el.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
-        });
-        this.updateSelectedClasses(this.selectedElements, element);
+        this.updateGroups(this._selectedElements, element);
         if (this.Settings.useLayers)
             element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) + 1}`;
         this.PS.publish('Selected:added', publishData);
@@ -1885,25 +1957,56 @@ class SelectedSet extends Set {
             items: this.elements,
             item: element,
         };
+        const row = element.parentElement;
+        if (row)
+            row.classList.remove('selection');
         this.PS.publish('Selected:removed:pre', publishData);
         const deleted = super.delete(element);
         element.classList.remove(this.Settings.selectedClass);
-        const row = element.parentElement;
-        if (row) {
-            row.classList.remove('selection');
-        }
         if (element.closest('.ds-folder')) {
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
+            this._selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
+            this._isSelecteedElementPass = false;
         }
         else {
-            this.selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
+            this._selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
+            this._isSelecteedElementPass = true;
         }
-        element.classList.remove('selectedFirst', 'selectedIntermediate', 'selectedLast');
-        this.updateSelectedClasses(this.selectedElements, element, true);
+        this.updateGroups(this._selectedElements, element, true);
         if (this.Settings.useLayers)
             element.style.zIndex = `${(parseInt(element.style.zIndex) || 0) - 1}`;
         this.PS.publish('Selected:removed', publishData);
         return deleted;
+    }
+    updateGroups(elementsArr, element, del) {
+        if (elementsArr.length === 0)
+            return;
+        const groups = [];
+        const currentGroup = [];
+        elementsArr.forEach((_, i) => {
+            const currEl = elementsArr[i];
+            const currparentEl = currEl.parentElement;
+            let isAdjacent;
+            if (currparentEl) {
+                if (this._isSelecteedElementPass) {
+                    isAdjacent =
+                        currparentEl.nextElementSibling?.classList.contains('selection');
+                }
+                else {
+                    const secondParent = currparentEl.parentElement?.nextElementSibling?.querySelectorAll('.selection');
+                    isAdjacent = !!secondParent?.length;
+                }
+            }
+            if (isAdjacent) {
+                currentGroup.push(currEl);
+            }
+            else {
+                groups.push([...currentGroup, currEl]);
+                currentGroup.length = 0;
+            }
+        });
+        groups.forEach((gr) => {
+            this.updateSelectedClasses(gr, element, del);
+        });
     }
     updateSelectedClasses(elementsArr, element, del) {
         const tr = element.parentElement?.closest('tr');
@@ -1917,15 +2020,15 @@ class SelectedSet extends Set {
                 elementsArrTds = elementsArr.map((el) => el.parentElement?.closest('tr')
                     ? el.parentElement.querySelectorAll('td')[1]
                     : el);
-                if (del) {
-                    elementTd.classList.remove('selectedFirst', 'selectedLast', 'selectedIntermediate');
-                }
-                else if (elementsArrTds.length > 1) {
-                    elementsArrTds.forEach((el) => {
-                        el.classList.remove('selectedFirst', 'selectedLast', 'selectedIntermediate');
-                    });
-                }
             }
+        }
+        if (del) {
+            elementTd.classList.remove('selectedFirst', 'selectedLast', 'selectedIntermediate');
+        }
+        else if (elementsArrTds.length > 1) {
+            elementsArrTds.forEach((el) => {
+                el.classList.remove('selectedFirst', 'selectedLast', 'selectedIntermediate');
+            });
         }
         if (elementsArrTds.length === 1 && !del) {
             if (elementTd)
@@ -2134,6 +2237,7 @@ class Selector {
     _rect;
     DS;
     PS;
+    _keyPress;
     Settings;
     ContainerSize;
     isSelecting = false;
@@ -2151,6 +2255,7 @@ class Selector {
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
         this.HTMLNode = this.Settings.selector; // to make TS happy, will be replaced in `attachSelector`
+        this._keyPress = false;
         this.PS.subscribe('Settings:updated:selectorClass', ({ settings }) => {
             this.HTMLNode.classList.remove(settings['selectorClass:pre']);
             this.HTMLNode.classList.add(settings.selectorClass);
@@ -2175,12 +2280,13 @@ class Selector {
         if (this.HTMLNode && this.DS.SelectorArea?.HTMLNode)
             this.DS.SelectorArea.HTMLNode.appendChild(this.HTMLNode);
     };
-    start = ({ isDragging }) => {
+    start = ({ isDragging, event, }) => {
         if (isDragging)
             return;
         const { stores: { PointerStore }, Area: { HTMLNode }, } = this.DS;
         if (HTMLNode.nodeName === '#document')
             return;
+        this._keyPress = this.DS.stores.KeyStore.isCtrlOrMetaPressed(event);
         const pPos = PointerStore.initialValArea;
         updateElementStylePos(this.HTMLNode, vect2rect(pPos, 1));
         if (this.DS.SelectorArea.HTMLNodeSize) {
@@ -2198,6 +2304,7 @@ class Selector {
         this.HTMLNode.style.height = '0';
         this.HTMLNode.style.display = 'none';
         this.scrollSelector = false;
+        this._keyPress = false;
         this.stopAutoScroll();
         if (this.isSelecting) {
             this.isSelecting = false;
@@ -2208,7 +2315,7 @@ class Selector {
     };
     /** Moves the selection to the correct place */
     update = ({ isDragging }) => {
-        if (isDragging || this.DS.continue)
+        if (isDragging || this.DS.continue || this._keyPress)
             return;
         const { stores: { ScrollStore, PointerStore }, } = this.DS;
         const { x, y } = this.DS.getCurrentCursorPosition();
@@ -2413,17 +2520,6 @@ class Selector {
     };
 }
 
-/** Logic when an element is selected */
-const handleSelection = ({ element, force, multiSelectionToggle, SelectedSet, hoverClassName, }) => {
-    if (element.classList.contains(hoverClassName) && !force)
-        return;
-    if (!SelectedSet.has(element))
-        SelectedSet.add(element);
-    else if (multiSelectionToggle)
-        SelectedSet.delete(element);
-    element.classList.add(hoverClassName);
-};
-
 /** Logic when an element is de-selected */
 const handleUnSelection = ({ element, force, SelectedSet, PrevSelectedSet, hoverClassName, }) => {
     if (!element.classList.contains(hoverClassName) && !force)
@@ -2437,10 +2533,12 @@ const handleUnSelection = ({ element, force, SelectedSet, PrevSelectedSet, hover
      * = if item was selected and is not in selection anymore, reselect it
      * = if item was not selected and is not in selection anymore, unselect it
      */
-    if (inSelection && !inPrevSelection)
+    if (inSelection && !inPrevSelection) {
         SelectedSet.delete(element);
-    else if (!inSelection && inPrevSelection)
+    }
+    else if (!inSelection && inPrevSelection) {
         SelectedSet.add(element);
+    }
     element.classList.remove(hoverClassName);
 };
 
@@ -2486,11 +2584,11 @@ class Selection {
     }
     /** Stores the previous selection (solves #9) */
     _storePrevious(event) {
-        this.DS;
-        // if (KeyStore.isMultiSelectKeyPressed(event))
-        //   this._prevSelectedSet = new Set(SelectedSet)
-        // else
-        this._prevSelectedSet = new Set();
+        const { stores: { KeyStore }, SelectedSet, } = this.DS;
+        if (KeyStore.isShiftPressed(event) || KeyStore.isCtrlOrMetaPressed(event))
+            this._prevSelectedSet = new Set(SelectedSet);
+        else
+            this._prevSelectedSet = new Set();
     }
     start = ({ event, isDragging, }) => {
         if (isDragging)
@@ -2506,7 +2604,7 @@ class Selection {
     /** Checks if any selectable element is inside selection. */
     _handleInsideSelection = (force, event) => {
         const { SelectableSet, SelectorArea, Selector } = this.DS;
-        const multiSelectionToggle = this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) &&
+        const multiSelectionToggle = this.DS.stores.KeyStore.isShiftPressed(event) &&
             this.Settings.multiSelectToggling;
         const selectionThreshold = this.Settings.selectionThreshold;
         SelectableSet.rects;
@@ -2522,15 +2620,9 @@ class Selection {
             if (!SelectorArea.isInside(element, elementRect))
                 continue;
             if (isCollision(elementRect, selectorRect, selectionThreshold)) {
-                const row = el.parentElement;
-                if (row)
-                    row.classList.add('selection');
                 select.set(el, elRect);
             }
             else {
-                const row = el.parentElement;
-                if (row)
-                    row.classList.remove('selection');
                 unselect.set(el, elRect);
             }
         }
@@ -3298,7 +3390,8 @@ class DragSelect {
     /** The previous position of the cursor/selector */
     getPreviousCursorPositionArea = () => this.stores.PointerStore.lastValArea;
     /** Whether the multi-selection key was pressed */
-    isMultiSelect = (event) => this.stores.KeyStore.isMultiSelectKeyPressed(event);
+    isMultiSelect = (event) => this.stores.KeyStore.isCtrlOrMetaPressed(event) ||
+        this.stores.KeyStore.isShiftPressed(event);
     /** Whether the user is currently drag n dropping elements (instead of selection) */
     isDragging = () => this.Interaction.isDragging;
     /** Returns first DropsZone under coordinates, if no coordinated provided current pointer coordinates are used */

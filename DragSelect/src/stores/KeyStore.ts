@@ -18,17 +18,22 @@ export type DSKeyStorePublish = {
   [K in DSKeyStorePublishEventNames]: DSKeyStorePublishEventData
 }
 
-type KeyMapping = {
-  [key in 'control' | 'shift' | 'meta']: 'ctrlKey' | 'shiftKey' | 'metaKey'
+type ModifierKey = 'ctrl' | 'meta' | 'shift'
+
+type KeyToModifierMap = {
+  ctrl: 'ctrlKey'
+  meta: 'metaKey'
+  shift: 'shiftKey'
 }
 
 export default class KeyStore<E extends DSInputElement> {
   private _currentValues = new Set<string>()
-  private _keyMapping: KeyMapping = {
-    control: 'ctrlKey',
+  private _keyMapping: KeyToModifierMap = {
+    ctrl: 'ctrlKey',
     shift: 'shiftKey',
     meta: 'metaKey',
   }
+  private _keyTimeouts: Map<string, ReturnType<typeof setTimeout>> = new Map()
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private settings: Required<Settings<E>>
@@ -46,25 +51,44 @@ export default class KeyStore<E extends DSInputElement> {
   }
 
   private init = () => {
-    // document.addEventListener('keydown', this.keydown)
-    // document.addEventListener('keyup', this.keyup)
+    document.addEventListener('keydown', this.keydown)
+    document.addEventListener('keyup', this.keyup)
     window.addEventListener('blur', this.reset)
   }
 
   private keydown = (event: KeyboardEvent) => {
     if (!event.key?.toLocaleLowerCase) return
     const key = event.key.toLowerCase()
+
+    const oldTimeout = this._keyTimeouts.get(key)
+    if (oldTimeout) clearTimeout(oldTimeout)
+
     this.PS.publish('KeyStore:down:pre', { event, key })
     this._currentValues.add(key)
     this.PS.publish('KeyStore:down', { event, key })
+
+    this._keyTimeouts.set(
+      key,
+      setTimeout(() => {
+        this._currentValues.delete(key)
+        this._keyTimeouts.delete(key)
+      }, 1000)
+    )
   }
 
   private keyup = (event: KeyboardEvent) => {
-    // if (!event.key?.toLocaleLowerCase) return
-    // const key = event.key.toLowerCase()
-    // this.PS.publish('KeyStore:up:pre', { event, key })
-    // this._currentValues.delete(key)
-    // this.PS.publish('KeyStore:up', { event, key })
+    if (!event.key?.toLocaleLowerCase) return
+
+    const key = event.key.toLowerCase()
+    this.PS.publish('KeyStore:up:pre', { event, key })
+    this._currentValues.delete(key)
+    this.PS.publish('KeyStore:up', { event, key })
+
+    const timeout = this._keyTimeouts.get(key)
+    if (timeout) {
+      clearTimeout(timeout)
+      this._keyTimeouts.delete(key)
+    }
   }
 
   public stop = () => {
@@ -76,27 +100,36 @@ export default class KeyStore<E extends DSInputElement> {
 
   private reset = () => this._currentValues.clear()
 
-  public isMultiSelectKeyPressed(
+  private isMultiSelectKeyPressed(
+    key: ModifierKey,
     event?: KeyboardEvent | MouseEvent | PointerEvent | TouchEvent
   ) {
     if (this.settings.multiSelectMode) return true
 
-    const multiSelectKeys =
-      this.settings.multiSelectKeys?.map(
-        (key) => key.toLocaleLowerCase() as keyof KeyMapping
-      ) ?? []
+    const pressed = this._currentValues.has(key)
 
-    if (
-      this.currentValues.some((key) =>
-        multiSelectKeys.includes(key as keyof KeyMapping)
-      )
+    const modifierFromEvent =
+      event?.[this._keyMapping[key]] ??
+      (event instanceof KeyboardEvent &&
+        event.getModifierState?.(key.charAt(0).toUpperCase() + key.slice(1))) ??
+      false
+
+    return pressed || modifierFromEvent
+  }
+
+  public isCtrlOrMetaPressed(
+    event?: KeyboardEvent | MouseEvent | PointerEvent | TouchEvent
+  ): boolean {
+    return (
+      this.isMultiSelectKeyPressed('ctrl', event) ||
+      this.isMultiSelectKeyPressed('meta', event)
     )
-      return true
+  }
 
-    if (event && multiSelectKeys.some((key) => event[this._keyMapping[key]]))
-      return true
-
-    return false
+  public isShiftPressed(
+    event?: KeyboardEvent | MouseEvent | PointerEvent | TouchEvent
+  ): boolean {
+    return this.isMultiSelectKeyPressed('shift', event)
   }
 
   public get currentValues() {

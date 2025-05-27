@@ -11,6 +11,7 @@ export default class Selector<E extends DSInputElement> {
   private _rect?: DSBoundingRect
   private DS: DragSelect<E>
   private PS: PubSub<E>
+  private _keyPress: boolean
   private Settings: DSSettings<E>
   private ContainerSize?: AreaSize
   private isSelecting = false
@@ -30,6 +31,7 @@ export default class Selector<E extends DSInputElement> {
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
     this.HTMLNode = this.Settings.selector // to make TS happy, will be replaced in `attachSelector`
+    this._keyPress = false
 
     this.PS.subscribe('Settings:updated:selectorClass', ({ settings }) => {
       this.HTMLNode.classList.remove(settings['selectorClass:pre'])
@@ -58,13 +60,20 @@ export default class Selector<E extends DSInputElement> {
       this.DS.SelectorArea.HTMLNode.appendChild(this.HTMLNode)
   }
 
-  private start = ({ isDragging }: { isDragging?: boolean }) => {
+  private start = ({
+    isDragging,
+    event,
+  }: {
+    isDragging?: boolean
+    event: MouseEvent | PointerEvent | TouchEvent | KeyboardEvent
+  }) => {
     if (isDragging) return
     const {
       stores: { PointerStore },
       Area: { HTMLNode },
     } = this.DS
     if (HTMLNode.nodeName === '#document') return
+    this._keyPress = this.DS.stores.KeyStore.isCtrlOrMetaPressed(event)
 
     const pPos = PointerStore.initialValArea
     updateElementStylePos(this.HTMLNode, vect2rect(pPos, 1))
@@ -85,6 +94,7 @@ export default class Selector<E extends DSInputElement> {
     this.HTMLNode.style.height = '0'
     this.HTMLNode.style.display = 'none'
     this.scrollSelector = false
+    this._keyPress = false
     this.stopAutoScroll()
     if (this.isSelecting) {
       this.isSelecting = false
@@ -96,7 +106,7 @@ export default class Selector<E extends DSInputElement> {
 
   /** Moves the selection to the correct place */
   private update = ({ isDragging }: { isDragging?: boolean }) => {
-    if (isDragging || this.DS.continue) return
+    if (isDragging || this.DS.continue || this._keyPress) return
     const {
       stores: { ScrollStore, PointerStore },
     } = this.DS

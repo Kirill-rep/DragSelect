@@ -1,5 +1,5 @@
-import SelectedSet from "../modules/SelectedSet"
-import { DSInputElement } from "../types"
+import SelectedSet from '../modules/SelectedSet'
+import { DSInputElement } from '../types'
 
 type Props<E extends DSInputElement> = {
   element: E
@@ -19,8 +19,11 @@ export const handleSelection = <E extends DSInputElement>({
 }: Props<E>) => {
   if (element.classList.contains(hoverClassName) && !force) return
 
-  if (!SelectedSet.has(element)) SelectedSet.add(element)
-  else if (multiSelectionToggle) SelectedSet.delete(element)
+  if (!SelectedSet.has(element)) {
+    SelectedSet.add(element)
+  } else if (multiSelectionToggle) {
+    SelectedSet.delete(element)
+  }
 
   element.classList.add(hoverClassName)
 }

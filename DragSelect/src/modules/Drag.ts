@@ -12,6 +12,7 @@ import { calcVect, num2vect, vect2rect } from '../methods/vect2'
 import { handleKeyboardDragPosDifference } from '../methods/handleKeyboardDragPosDifference'
 import { moveElement } from '../methods/moveElement'
 import { limitDirection } from '../methods/limitDirection'
+import KeyStore from '../stores/KeyStore'
 
 export default class Drag<E extends DSInputElement> {
   private _prevCursorPos?: Vect2
@@ -25,6 +26,7 @@ export default class Drag<E extends DSInputElement> {
   private _divElementTwo: DSInputElement | null = null
   private _readyDropZone: DSInputElement | undefined = undefined
   private _styles: Partial<CustomStyle> | undefined
+  private _MultiSelect: KeyStore<E>
   private startDrag: boolean
 
   DS: DragSelect<E>
@@ -36,108 +38,111 @@ export default class Drag<E extends DSInputElement> {
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
     this.startDrag = false
-
-    this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys)
-    this.assignDragKeys()
+    this._MultiSelect = this.DS.stores.KeyStore
+    // this.PS.subscribe('Settings:updated:dragKeys', this.assignDragKeys)
+    // this.assignDragKeys()
 
     this.PS.subscribe('Interaction:start', this.start)
     this.PS.subscribe('Interaction:end', this.stop)
     this.PS.subscribe('Interaction:update', this.update)
-    this.PS.subscribe('KeyStore:down', this.keyboardDrag)
-    this.PS.subscribe('KeyStore:up', this.keyboardEnd)
+    // this.PS.subscribe('KeyStore:down', this.keyboardDrag)
+    // this.PS.subscribe('KeyStore:up', this.keyboardEnd)
   }
 
-  private assignDragKeys = () => {
-    this._dragKeys = {
-      up: this.Settings.dragKeys.up.map((k) => k.toLowerCase()),
-      down: this.Settings.dragKeys.down.map((k) => k.toLowerCase()),
-      left: this.Settings.dragKeys.left.map((k) => k.toLowerCase()),
-      right: this.Settings.dragKeys.right.map((k) => k.toLowerCase()),
-    }
-    this._dragKeysFlat = [
-      ...this._dragKeys.up,
-      ...this._dragKeys.down,
-      ...this._dragKeys.left,
-      ...this._dragKeys.right,
-    ]
-  }
+  // private assignDragKeys = () => {
+  //   this._dragKeys = {
+  //     up: this.Settings.dragKeys.up.map((k) => k.toLowerCase()),
+  //     down: this.Settings.dragKeys.down.map((k) => k.toLowerCase()),
+  //     left: this.Settings.dragKeys.left.map((k) => k.toLowerCase()),
+  //     right: this.Settings.dragKeys.right.map((k) => k.toLowerCase()),
+  //   }
+  //   this._dragKeysFlat = [
+  //     ...this._dragKeys.up,
+  //     ...this._dragKeys.down,
+  //     ...this._dragKeys.left,
+  //     ...this._dragKeys.right,
+  //   ]
+  // }
 
-  private keyboardDrag = ({
-    event,
-    key,
-  }: {
-    event: KeyboardEvent
-    key: string
-  }) => {
-    const _key = key.toLowerCase()
-    if (
-      !this.Settings.keyboardDrag ||
-      !this._dragKeysFlat.includes(_key) ||
-      !this.DS.SelectedSet.size ||
-      !this.Settings.draggability ||
-      this.DS.continue
-    )
-      return
+  // private keyboardDrag = ({
+  //   event,
+  //   key,
+  // }: {
+  //   event: KeyboardEvent
+  //   key: string
+  // }) => {
 
-    const publishData = {
-      event,
-      isDragging: true,
-      isDraggingKeyboard: true,
-      key,
-    }
-    this.PS.publish(['Interaction:start:pre', 'Interaction:start'], publishData)
+  //   const _key = key.toLowerCase()
 
-    this._elements = this.DS.getSelection()
-    this._selectionRect = this.DS.Selection.boundingRect
-    this.handleZIndex(true)
+  //   if (
+  //     !this.Settings.keyboardDrag ||
+  //     !this._dragKeysFlat.includes(_key) ||
+  //     !this.DS.SelectedSet.size ||
+  //     !this.Settings.draggability ||
+  //     this.DS.continue
+  //   )
+  //     return
 
-    let posDirection = handleKeyboardDragPosDifference({
-      shiftKey: this.DS.stores.KeyStore.currentValues.includes('shift'),
-      keyboardDragSpeed: this.Settings.keyboardDragSpeed,
-      zoom: this.Settings.zoom,
-      key: _key,
-      scrollDiff: this._scrollDiff,
-      dragKeys: this._dragKeys,
-    })
+  //   const publishData = {
+  //     event,
+  //     isDragging: true,
+  //     isDraggingKeyboard: true,
+  //     key,
+  //   }
+  //   this.PS.publish(['Interaction:start:pre', 'Interaction:start'], publishData)
 
-    posDirection = limitDirection({
-      direction: posDirection,
-      containerRect: this.DS.SelectorArea.rect,
-      scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
-      selectionRect: this._selectionRect,
-    })
+  //   this._elements = this.DS.getSelection()
+  //   this._selectionRect = this.DS.Selection.boundingRect
+  //   this.handleZIndex(true)
 
-    this.moveElements(posDirection)
+  //   let posDirection = handleKeyboardDragPosDifference({
+  //     shiftKey: this.DS.stores.KeyStore.currentValues.includes('shift'),
+  //     keyboardDragSpeed: this.Settings.keyboardDragSpeed,
+  //     zoom: this.Settings.zoom,
+  //     key: _key,
+  //     scrollDiff: this._scrollDiff,
+  //     dragKeys: this._dragKeys,
+  //   })
 
-    this.PS.publish(
-      ['Interaction:update:pre', 'Interaction:update'],
-      publishData
-    )
-  }
+  //   posDirection = limitDirection({
+  //     direction: posDirection,
+  //     containerRect: this.DS.SelectorArea.rect,
+  //     scrollAmount: this.DS.stores.ScrollStore.scrollAmount,
+  //     selectionRect: this._selectionRect,
+  //   })
 
-  private keyboardEnd = ({
-    event,
-    key,
-  }: {
-    event: KeyboardEvent
-    key: string
-  }) => {
-    const _key = key.toLowerCase()
-    if (
-      !this.Settings.keyboardDrag ||
-      !this._dragKeysFlat.includes(_key) ||
-      !this.DS.SelectedSet.size ||
-      !this.Settings.draggability
-    )
-      return
-    const publishData = {
-      event,
-      isDragging: this.Settings.draggability,
-      isDraggingKeyboard: true,
-      key,
-    }
-    this.PS.publish(['Interaction:end:pre', 'Interaction:end'], publishData)
-  }
+  //   this.moveElements(posDirection)
+
+  //   this.PS.publish(
+  //     ['Interaction:update:pre', 'Interaction:update'],
+  //     publishData
+  //   )
+  // }
+
+  // private keyboardEnd = ({
+  //   event,
+  //   key,
+  // }: {
+  //   event: KeyboardEvent
+  //   key: string
+  // }) => {
+  //   return
+  //   const _key = key.toLowerCase()
+  //   if (
+  //     !this.Settings.keyboardDrag ||
+  //     !this._dragKeysFlat.includes(_key) ||
+  //     !this.DS.SelectedSet.size ||
+  //     !this.Settings.draggability
+  //   )
+  //     return
+  //   const publishData = {
+  //     event,
+  //     isDragging: this.Settings.draggability,
+  //     isDraggingKeyboard: true,
+  //     key,
+  //   }
+  //   this.PS.publish(['Interaction:end:pre', 'Interaction:end'], publishData)
+  // }
 
   private start = ({
     isDragging,
@@ -147,6 +152,7 @@ export default class Drag<E extends DSInputElement> {
     isDraggingKeyboard?: boolean
   }) => {
     if (!isDragging || isDraggingKeyboard) return
+
     this._prevCursorPos = undefined
     this._prevScrollPos = undefined
     this._elements = this.DS.getSelection()

@@ -71,7 +71,16 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
     }
     this.PS.publish('Selectable:added:pre', publishData)
     element.classList.add(this.Settings.selectableClass)
-    element.addEventListener('click', this._onClick)
+
+    const isRow = element?.parentElement
+    if (isRow) {
+      isRow.addEventListener('click', (event) => {
+        this._onClick(event, element, true)
+      })
+      isRow.addEventListener('mousedown', (event) => {
+        this._onClick(event, element, false)
+      })
+    }
 
     // if (this.Settings.usePointerEvents)
     //   element.addEventListener('pointerdown', this._onPointer, {
@@ -101,7 +110,16 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
     this.PS.publish('Selectable:removed:pre', publishData)
     element.classList.remove(this.Settings.selectableClass)
     element.classList.remove(this.Settings.hoverClass)
-    element.removeEventListener('click', this._onClick)
+
+    const isRow = element?.parentElement
+    if (isRow) {
+      isRow.removeEventListener('click', (event) => {
+        this._onClick(event, element, true)
+      })
+      isRow.removeEventListener('mousedown', (event) => {
+        this._onClick(event, element, false)
+      })
+    }
 
     if (this.Settings.usePointerEvents)
       element.removeEventListener('pointerdown', this._onPointer, {
@@ -121,11 +139,15 @@ export default class SelectableSet<E extends DSInputElement> extends Set<E> {
   public clear = () => this.forEach((el) => this.delete(el))
 
   private _onClick = (
-    event: Event // we know it’s only a MouseEvent
+    event: Event, // we know it’s only a MouseEvent
+    element: DSInputElement,
+    selectableEl: boolean
   ) =>
     this.PS.publish(['Selectable:click:pre', 'Selectable:click'], {
       event: event as MouseEvent,
-    })
+      element: element,
+      selectableEl,
+    } as { event: MouseEvent; element: DSInputElement; selectableEl: boolean })
 
   private _onPointer = (
     event: Event // we know it’s only an InteractionEvent

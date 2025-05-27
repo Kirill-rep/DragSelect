@@ -33,10 +33,9 @@ export default class Selection<E extends DSInputElement> {
       SelectedSet,
     } = this.DS
 
-    // if (KeyStore.isMultiSelectKeyPressed(event))
-    //   this._prevSelectedSet = new Set(SelectedSet)
-    // else
-    this._prevSelectedSet = new Set()
+    if (KeyStore.isShiftPressed(event) || KeyStore.isCtrlOrMetaPressed(event))
+      this._prevSelectedSet = new Set(SelectedSet)
+    else this._prevSelectedSet = new Set()
   }
 
   private start = ({
@@ -61,7 +60,7 @@ export default class Selection<E extends DSInputElement> {
     const { SelectableSet, SelectorArea, Selector } = this.DS
 
     const multiSelectionToggle =
-      this.DS.stores.KeyStore.isMultiSelectKeyPressed(event) &&
+      this.DS.stores.KeyStore.isShiftPressed(event) &&
       this.Settings.multiSelectToggling
     const selectionThreshold = this.Settings.selectionThreshold
 
@@ -78,12 +77,8 @@ export default class Selection<E extends DSInputElement> {
       const elRect = el.getBoundingClientRect()
       if (!SelectorArea.isInside(element, elementRect)) continue
       if (isCollision(elementRect, selectorRect, selectionThreshold)) {
-        const row = el.parentElement
-        if (row) row.classList.add('selection')
         select.set(el, elRect)
       } else {
-        const row = el.parentElement
-        if (row) row.classList.remove('selection')
         unselect.set(el, elRect)
       }
     }
