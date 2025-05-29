@@ -1102,11 +1102,8 @@ class DropZones {
 const handleSelection = ({ element, force, multiSelectionToggle, SelectedSet, hoverClassName, }) => {
     if (element.classList.contains(hoverClassName) && !force)
         return;
-    const row = element.parentElement;
     if (!SelectedSet.has(element)) {
-        if (row)
-            row.classList.add('selection');
-        SelectedSet.add(element);
+        SelectedSet.add(element, true);
     }
     else if (multiSelectionToggle) {
         SelectedSet.delete(element);
@@ -1947,13 +1944,16 @@ class SelectedSet extends Set {
         this.Settings = this.DS.stores.SettingsStore.s;
         this._selectedElements = [];
     }
-    add(element) {
+    add(element, selection) {
         if (!element || super.has(element))
             return this;
         const publishData = {
             items: this.elements,
             item: element,
         };
+        const row = element.parentElement;
+        if (row && selection)
+            row.classList.add('selection');
         this.PS.publish('Selected:added:pre', publishData);
         super.add(element);
         element.classList.add(this.Settings.selectedClass);
@@ -2558,7 +2558,7 @@ const handleUnSelection = ({ element, force, SelectedSet, PrevSelectedSet, hover
         SelectedSet.delete(element);
     }
     else if (!inSelection && inPrevSelection) {
-        SelectedSet.add(element);
+        SelectedSet.add(element, true);
     }
     element.classList.remove(hoverClassName);
 };

@@ -31,7 +31,7 @@ export const handleUnSelection = <E extends DSInputElement>({
   if (inSelection && !inPrevSelection) {
     SelectedSet.delete(element)
   } else if (!inSelection && inPrevSelection) {
-    SelectedSet.add(element)
+    SelectedSet.add(element, true)
   }
 
   element.classList.remove(hoverClassName)

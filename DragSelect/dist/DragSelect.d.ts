@@ -517,7 +517,7 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
         DS: DragSelect<E>;
         PS: PubSub<E>;
     });
-    add(element?: E): this;
+    add(element?: E, selection?: boolean): this;
     delete(element: E): boolean;
     private updateGroups;
     private updateSelectedClasses;

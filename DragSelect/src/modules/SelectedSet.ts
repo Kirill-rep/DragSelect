@@ -35,12 +35,15 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this._selectedElements = []
   }
 
-  public add(element?: E) {
+  public add(element?: E, selection?: boolean) {
     if (!element || super.has(element)) return this
     const publishData = {
       items: this.elements,
       item: element,
     }
+
+    const row = element.parentElement
+    if (row && selection) row.classList.add('selection')
 
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
