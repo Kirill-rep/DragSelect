@@ -83,6 +83,7 @@ declare class Interaction<E extends DSInputElement> {
     private DS;
     private PS;
     private Settings;
+    private KeyStore;
     private startX;
     private startY;
     private dragThreshold;

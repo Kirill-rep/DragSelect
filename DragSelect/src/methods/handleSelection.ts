@@ -18,8 +18,10 @@ export const handleSelection = <E extends DSInputElement>({
   hoverClassName,
 }: Props<E>) => {
   if (element.classList.contains(hoverClassName) && !force) return
+  const row = element.parentElement
 
   if (!SelectedSet.has(element)) {
+    if (row) row.classList.add('selection')
     SelectedSet.add(element)
   } else if (multiSelectionToggle) {
     SelectedSet.delete(element)

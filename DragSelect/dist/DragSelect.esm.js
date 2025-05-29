@@ -1102,7 +1102,10 @@ class DropZones {
 const handleSelection = ({ element, force, multiSelectionToggle, SelectedSet, hoverClassName, }) => {
     if (element.classList.contains(hoverClassName) && !force)
         return;
+    const row = element.parentElement;
     if (!SelectedSet.has(element)) {
+        if (row)
+            row.classList.add('selection');
         SelectedSet.add(element);
     }
     else if (multiSelectionToggle) {
@@ -1117,6 +1120,7 @@ class Interaction {
     DS;
     PS;
     Settings;
+    KeyStore;
     startX = 0;
     startY = 0;
     dragThreshold = 5;
@@ -1124,6 +1128,7 @@ class Interaction {
         this.DS = DS;
         this.PS = PS;
         this.Settings = this.DS.stores.SettingsStore.s;
+        this.KeyStore = this.DS.stores.KeyStore;
         // not on every modification, just on change of area
         this.PS.subscribe('Settings:updated:area', ({ settings }) => {
             this.removeAreaEventListeners(settings['area:pre']);
@@ -1238,9 +1243,13 @@ class Interaction {
      * Making DragSelect accessible for everyone!
      */
     onClick = ({ event, el, selectableEl, }) => {
-        if (!this._canInteract(event, !selectableEl) ||
-            !this.DS.stores.KeyStore.isCtrlOrMetaPressed(event))
+        if (!this._canInteract(event, !selectableEl))
             return;
+        const isCtrl = this.KeyStore.isCtrlOrMetaPressed(event);
+        if (!isCtrl)
+            return;
+        // const isShift = this.KeyStore.isShiftPressed(event)
+        // if (!isCtrl || !isShift) return
         if (selectableEl) {
             event.stopPropagation();
             return;
@@ -1248,15 +1257,23 @@ class Interaction {
         if (event.target.closest('a')) {
             return;
         }
-        const SelectedSet = this.DS
-            .SelectedSet;
-        handleSelection({
-            element: el,
-            force: true,
-            multiSelectionToggle: true,
-            SelectedSet,
-            hoverClassName: this.Settings.hoverClass,
-        });
+        const { SelectedSet, SelectableSet } = this.DS;
+        if (this.KeyStore.isCtrlOrMetaPressed(event)) {
+            const selectedSet = SelectedSet;
+            handleSelection({
+                element: el,
+                force: true,
+                multiSelectionToggle: true,
+                SelectedSet: selectedSet,
+                hoverClassName: this.Settings.hoverClass,
+            });
+        }
+        // if (this.KeyStore.isShiftPressed(event)) {
+        //   const arrSelectableEl = SelectableSet.elements.filter(
+        //     (el) => el.isConnected
+        //   )
+        //   console.log(arrSelectableEl)
+        // }
     };
     stop = (area = this.DS.Area.HTMLNode) => {
         this.removeAreaEventListeners(area);
@@ -1937,9 +1954,6 @@ class SelectedSet extends Set {
             items: this.elements,
             item: element,
         };
-        const row = element.parentElement;
-        if (row)
-            row.classList.add('selection');
         this.PS.publish('Selected:added:pre', publishData);
         super.add(element);
         element.classList.add(this.Settings.selectedClass);

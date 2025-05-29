@@ -4,6 +4,7 @@ import { DSEdges, DSInputElement } from '../types'
 import { DSSettings } from '../stores/SettingsStore'
 import { handleSelection } from '../methods/handleSelection'
 import SelectedSet from './SelectedSet'
+import KeyStore from '../stores/KeyStore'
 
 export type DSInteractionPublishEventNames =
   | 'Interaction:init:pre'
@@ -56,6 +57,7 @@ export default class Interaction<E extends DSInputElement> {
   private DS: DragSelect<E>
   private PS: PubSub<E>
   private Settings: DSSettings<E>
+  private KeyStore: KeyStore<E>
   private startX = 0
   private startY = 0
   private dragThreshold = 5
@@ -64,7 +66,7 @@ export default class Interaction<E extends DSInputElement> {
     this.DS = DS
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
-
+    this.KeyStore = this.DS.stores.KeyStore
     // not on every modification, just on change of area
     this.PS.subscribe('Settings:updated:area', ({ settings }) => {
       this.removeAreaEventListeners(settings['area:pre'])
@@ -218,12 +220,11 @@ export default class Interaction<E extends DSInputElement> {
     el: DSInputElement
     selectableEl: boolean
   }) => {
-    if (
-      !this._canInteract(event, !selectableEl) ||
-      !this.DS.stores.KeyStore.isCtrlOrMetaPressed(event)
-    )
-      return
-
+    if (!this._canInteract(event, !selectableEl)) return
+    const isCtrl = this.KeyStore.isCtrlOrMetaPressed(event)
+    if (!isCtrl) return
+    // const isShift = this.KeyStore.isShiftPressed(event)
+    // if (!isCtrl || !isShift) return
     if (selectableEl) {
       event.stopPropagation()
       return
@@ -232,16 +233,25 @@ export default class Interaction<E extends DSInputElement> {
       return
     }
 
-    const SelectedSet = this.DS
-      .SelectedSet as unknown as SelectedSet<DSInputElement>
+    const { SelectedSet, SelectableSet } = this.DS
+    if (this.KeyStore.isCtrlOrMetaPressed(event)) {
+      const selectedSet = SelectedSet as unknown as SelectedSet<DSInputElement>
 
-    handleSelection({
-      element: el,
-      force: true,
-      multiSelectionToggle: true,
-      SelectedSet,
-      hoverClassName: this.Settings.hoverClass,
-    })
+      handleSelection({
+        element: el,
+        force: true,
+        multiSelectionToggle: true,
+        SelectedSet: selectedSet,
+        hoverClassName: this.Settings.hoverClass,
+      })
+    }
+
+    // if (this.KeyStore.isShiftPressed(event)) {
+    //   const arrSelectableEl = SelectableSet.elements.filter(
+    //     (el) => el.isConnected
+    //   )
+    //   console.log(arrSelectableEl)
+    // }
   }
 
   stop = (area = this.DS.Area.HTMLNode) => {
