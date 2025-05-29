@@ -1117,6 +1117,39 @@
         element.classList.add(hoverClassName);
     };
 
+    const getShiftSelectedElements = (el, selectedElements, arrSelectableEl) => {
+        const clickedIndex = arrSelectableEl.indexOf(el);
+        if (clickedIndex === -1)
+            return [];
+        if (selectedElements.length === 0) {
+            return [];
+        }
+        const selectedIndexes = selectedElements
+            .map((el) => arrSelectableEl.indexOf(el))
+            .filter((idx) => idx !== -1)
+            .sort((a, b) => a - b);
+        const upperSelected = selectedIndexes.filter((idx) => idx < clickedIndex);
+        const lowerSelected = selectedIndexes.filter((idx) => idx > clickedIndex);
+        let fromIndex = clickedIndex;
+        let toIndex = clickedIndex;
+        if (upperSelected.length && lowerSelected.length) {
+            fromIndex = upperSelected[upperSelected.length - 1];
+            toIndex = lowerSelected[0];
+        }
+        else if (upperSelected.length) {
+            fromIndex = upperSelected[upperSelected.length - 1];
+        }
+        else if (lowerSelected.length) {
+            toIndex = lowerSelected[0];
+        }
+        else {
+            return [el];
+        }
+        if (fromIndex > toIndex)
+            [fromIndex, toIndex] = [toIndex, fromIndex];
+        return arrSelectableEl.slice(fromIndex, toIndex + 1);
+    };
+
     class Interaction {
         isInteracting;
         isDragging = false;
@@ -1249,19 +1282,22 @@
             if (!this._canInteract(event, !selectableEl))
                 return;
             const isCtrl = this.KeyStore.isCtrlOrMetaPressed(event);
-            if (!isCtrl)
+            const isShift = this.KeyStore.isShiftPressed(event);
+            if (!isCtrl && !isShift)
                 return;
-            // const isShift = this.KeyStore.isShiftPressed(event)
-            // if (!isCtrl || !isShift) return
+            const { SelectedSet, SelectableSet } = this.DS;
             if (selectableEl) {
                 event.stopPropagation();
+                if (isShift) {
+                    const arrSelectableEl = SelectableSet.elements.filter((el) => el.isConnected);
+                    SelectedSet.addAll(getShiftSelectedElements(el, SelectedSet.elements, arrSelectableEl));
+                }
                 return;
             }
             if (event.target.closest('a')) {
                 return;
             }
-            const { SelectedSet, SelectableSet } = this.DS;
-            if (this.KeyStore.isCtrlOrMetaPressed(event)) {
+            if (isCtrl) {
                 const selectedSet = SelectedSet;
                 handleSelection({
                     element: el,
@@ -1271,12 +1307,6 @@
                     hoverClassName: this.Settings.hoverClass,
                 });
             }
-            // if (this.KeyStore.isShiftPressed(event)) {
-            //   const arrSelectableEl = SelectableSet.elements.filter(
-            //     (el) => el.isConnected
-            //   )
-            //   console.log(arrSelectableEl)
-            // }
         };
         stop = (area = this.DS.Area.HTMLNode) => {
             this.removeAreaEventListeners(area);
@@ -2089,7 +2119,7 @@
                 this.add(element);
             return element;
         }
-        addAll = (elements) => elements.forEach((el) => this.add(el));
+        addAll = (elements) => elements.forEach((el) => this.add(el, true));
         deleteAll = (elements) => elements.forEach((el) => this.delete(el));
         get elements() {
             return Array.from(this.values());

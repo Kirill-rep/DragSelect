@@ -209,7 +209,8 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     return element
   }
 
-  public addAll = (elements: E[]) => elements.forEach((el) => this.add(el))
+  public addAll = (elements: E[]) =>
+    elements.forEach((el) => this.add(el, true))
 
   public deleteAll = (elements: E[]) =>
     elements.forEach((el) => this.delete(el))

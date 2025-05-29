@@ -5,6 +5,7 @@ import { DSSettings } from '../stores/SettingsStore'
 import { handleSelection } from '../methods/handleSelection'
 import SelectedSet from './SelectedSet'
 import KeyStore from '../stores/KeyStore'
+import { getShiftSelectedElemets } from '../methods/getShiftSelectedElemets'
 
 export type DSInteractionPublishEventNames =
   | 'Interaction:init:pre'
@@ -222,19 +223,33 @@ export default class Interaction<E extends DSInputElement> {
   }) => {
     if (!this._canInteract(event, !selectableEl)) return
     const isCtrl = this.KeyStore.isCtrlOrMetaPressed(event)
-    if (!isCtrl) return
-    // const isShift = this.KeyStore.isShiftPressed(event)
-    // if (!isCtrl || !isShift) return
+    const isShift = this.KeyStore.isShiftPressed(event)
+
+    if (!isCtrl && !isShift) return
+    const { SelectedSet, SelectableSet } = this.DS
+
     if (selectableEl) {
       event.stopPropagation()
+      if (isShift) {
+        const arrSelectableEl = SelectableSet.elements.filter(
+          (el) => el.isConnected
+        )
+        SelectedSet.addAll(
+          getShiftSelectedElemets(
+            el,
+            SelectedSet.elements,
+            arrSelectableEl
+          ) as E[]
+        )
+      }
+
       return
     }
     if ((event.target as HTMLElement).closest('a')) {
       return
     }
 
-    const { SelectedSet, SelectableSet } = this.DS
-    if (this.KeyStore.isCtrlOrMetaPressed(event)) {
+    if (isCtrl) {
       const selectedSet = SelectedSet as unknown as SelectedSet<DSInputElement>
 
       handleSelection({
@@ -245,13 +260,6 @@ export default class Interaction<E extends DSInputElement> {
         hoverClassName: this.Settings.hoverClass,
       })
     }
-
-    // if (this.KeyStore.isShiftPressed(event)) {
-    //   const arrSelectableEl = SelectableSet.elements.filter(
-    //     (el) => el.isConnected
-    //   )
-    //   console.log(arrSelectableEl)
-    // }
   }
 
   stop = (area = this.DS.Area.HTMLNode) => {
