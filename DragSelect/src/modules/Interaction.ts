@@ -5,7 +5,7 @@ import { DSSettings } from '../stores/SettingsStore'
 import { handleSelection } from '../methods/handleSelection'
 import SelectedSet from './SelectedSet'
 import KeyStore from '../stores/KeyStore'
-import { getShiftSelectedElemets } from '../methods/getShiftSelectedElemets'
+import { getShiftSelectedElements } from '../methods/getShiftSelectedElemets'
 
 export type DSInteractionPublishEventNames =
   | 'Interaction:init:pre'
@@ -235,7 +235,7 @@ export default class Interaction<E extends DSInputElement> {
           (el) => el.isConnected
         )
         SelectedSet.addAll(
-          getShiftSelectedElemets(
+          getShiftSelectedElements(
             el,
             SelectedSet.elements,
             arrSelectableEl

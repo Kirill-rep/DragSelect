@@ -1,6 +1,6 @@
 import { DSInputElement } from '../types'
 
-export const getShiftSelectedElemets = (
+export const getShiftSelectedElements = (
   el: DSInputElement,
   selectedElements: DSInputElement[],
   arrSelectableEl: DSInputElement[]
