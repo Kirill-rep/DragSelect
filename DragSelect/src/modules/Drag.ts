@@ -177,6 +177,9 @@ export default class Drag<E extends DSInputElement> {
         Object.assign(this._divElementTwo.style, stylesDivManyElWithText)
         this._divElementTwo.textContent = text || null
       } else {
+        if (this.DS.Style.picture) {
+          this.DS.Style.picture.style.maxWidth = '35ch'
+        }
         this._divElementTwo = null
         this._divElementOne = this.DS.Style.picture || null
       }

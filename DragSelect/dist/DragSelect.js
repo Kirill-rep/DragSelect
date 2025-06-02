@@ -610,6 +610,9 @@
                     this._divElementTwo.textContent = text || null;
                 }
                 else {
+                    if (this.DS.Style.picture) {
+                        this.DS.Style.picture.style.maxWidth = '35ch';
+                    }
                     this._divElementTwo = null;
                     this._divElementOne = this.DS.Style.picture || null;
                 }
