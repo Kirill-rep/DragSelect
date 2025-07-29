@@ -2808,6 +2808,8 @@ class SelectorArea {
     };
     /** Updates the selectorAreas positions to match the areas */
     updatePos = () => {
+        if (!this.DS?.Area || !this.HTMLNode)
+            return;
         this._rect = undefined;
         const rect = this.DS.Area.rect;
         const border = this.DS.Area.computedBorder;
