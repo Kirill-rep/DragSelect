@@ -2059,10 +2059,10 @@ class SelectedSet extends Set {
             }
         });
         groups.forEach((gr) => {
-            this.updateSelectedClasses(gr, element, del);
+            this._updateSelectedClasses(gr, element, del);
         });
     }
-    updateSelectedClasses(elementsArr, element, del) {
+    _updateSelectedClasses(elementsArr, element, del) {
         const tr = element.parentElement?.closest('tr');
         let elementTd = element;
         let elementsArrTds = elementsArr;
@@ -2118,7 +2118,7 @@ class SelectedSet extends Set {
     }
     addAll = (elements) => elements.forEach((el) => this.add(el, true));
     deleteAll = (elements) => elements.forEach((el) => this.delete(el));
-    updateSelectedClassesTest = () => {
+    updateSelectedClasses = () => {
         if (this.DS.Interaction.isDragging || this.DS.continue)
             return;
         this._selectedElements.forEach((el) => {

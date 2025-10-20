@@ -520,13 +520,13 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     add(element?: E, selection?: boolean): this;
     delete(element: E): boolean;
     private updateGroups;
-    private updateSelectedClasses;
+    private _updateSelectedClasses;
     clear: () => void;
     /** Adds/Removes an element. If it is already selected = remove, if not = add. */
     toggle(element: E): E;
     addAll: (elements: E[]) => void;
     deleteAll: (elements: E[]) => void;
-    updateSelectedClassesTest: () => void;
+    updateSelectedClasses: () => void;
     get elements(): E[];
     get rects(): Map<E, DSBoundingRect>;
 }

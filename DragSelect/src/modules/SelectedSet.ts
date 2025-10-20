@@ -136,11 +136,11 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     })
 
     groups.forEach((gr) => {
-      this.updateSelectedClasses(gr, element, del)
+      this._updateSelectedClasses(gr, element, del)
     })
   }
 
-  private updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
+  private _updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
     const tr = element.parentElement?.closest('tr')
     let elementTd: E | HTMLTableCellElement = element
     let elementsArrTds: E[] | HTMLTableCellElement[] | (E | HTMLElement)[] =
@@ -215,7 +215,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   public deleteAll = (elements: E[]) =>
     elements.forEach((el) => this.delete(el))
 
-  public updateSelectedClassesTest = () => {
+  public updateSelectedClasses = () => {
     if (this.DS.Interaction.isDragging || this.DS.continue) return
     this._selectedElements.forEach((el) => {
       const row = el.parentElement
