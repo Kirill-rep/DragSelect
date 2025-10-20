@@ -215,6 +215,14 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   public deleteAll = (elements: E[]) =>
     elements.forEach((el) => this.delete(el))
 
+  public updateSelectedClassesTest = () => {
+    if (this.DS.Interaction.isDragging || this.DS.continue) return
+    this._selectedElements.forEach((el) => {
+      const row = el.parentElement
+      if (row) row.classList.add('selection')
+    })
+  }
+
   get elements() {
     return Array.from(this.values())
   }

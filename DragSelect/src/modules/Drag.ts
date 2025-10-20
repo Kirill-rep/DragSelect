@@ -294,10 +294,10 @@ export default class Drag<E extends DSInputElement> {
     const { x, y } = this.DS.getCurrentCursorPosition()
     const elementsFromPoint = document.elementsFromPoint(x, y)
     const dropZoneFromPoint = (elementsFromPoint as HTMLElement[]).filter(
-      (el) => el.closest('.ds-dropzone-ready')
+      (el) => el.closest('.ds-dropzone')
     )
     const newReadyDropZone = dropZoneFromPoint.find((element) =>
-      element.classList.contains('ds-dropzone-ready')
+      element.classList.contains('ds-dropzone')
     )
 
     if (this._readyDropZone && this._readyDropZone !== newReadyDropZone) {

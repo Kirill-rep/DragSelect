@@ -526,6 +526,7 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     toggle(element: E): E;
     addAll: (elements: E[]) => void;
     deleteAll: (elements: E[]) => void;
+    updateSelectedClassesTest: () => void;
     get elements(): E[];
     get rects(): Map<E, DSBoundingRect>;
 }

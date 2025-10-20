@@ -700,8 +700,8 @@
         addReadyDropZone() {
             const { x, y } = this.DS.getCurrentCursorPosition();
             const elementsFromPoint = document.elementsFromPoint(x, y);
-            const dropZoneFromPoint = elementsFromPoint.filter((el) => el.closest('.ds-dropzone-ready'));
-            const newReadyDropZone = dropZoneFromPoint.find((element) => element.classList.contains('ds-dropzone-ready'));
+            const dropZoneFromPoint = elementsFromPoint.filter((el) => el.closest('.ds-dropzone'));
+            const newReadyDropZone = dropZoneFromPoint.find((element) => element.classList.contains('ds-dropzone'));
             if (this._readyDropZone && this._readyDropZone !== newReadyDropZone) {
                 this._readyDropZone.classList.remove('ds-dropzone-ready-drop');
             }
@@ -2124,6 +2124,15 @@
         }
         addAll = (elements) => elements.forEach((el) => this.add(el, true));
         deleteAll = (elements) => elements.forEach((el) => this.delete(el));
+        updateSelectedClassesTest = () => {
+            if (this.DS.Interaction.isDragging || this.DS.continue)
+                return;
+            this._selectedElements.forEach((el) => {
+                const row = el.parentElement;
+                if (row)
+                    row.classList.add('selection');
+            });
+        };
         get elements() {
             return Array.from(this.values());
         }
