@@ -629,6 +629,9 @@
             this._elements = [];
             this._draggingElement?.remove();
             this._draggingElement = null;
+            setTimeout(() => {
+                document.removeEventListener('click', this.captureClick, true);
+            }, 0);
         };
         update = ({ isDragging, isDraggingKeyboard, }) => {
             if (!isDragging ||
@@ -646,6 +649,7 @@
                         left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
                         top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
                     });
+                    document.addEventListener('click', this.captureClick, true);
                 }
                 document.body.appendChild(this._draggingElement);
                 if (this._divElementOne)
@@ -709,6 +713,9 @@
             if (this._readyDropZone) {
                 this._readyDropZone.classList.add('ds-dropzone-ready-drop');
             }
+        }
+        captureClick(event) {
+            event.stopPropagation();
         }
         ////
         // [PUBLICLY EXPOSED METHODS]

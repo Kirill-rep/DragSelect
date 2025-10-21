@@ -197,6 +197,9 @@ export default class Drag<E extends DSInputElement> {
     this._elements = []
     this._draggingElement?.remove()
     this._draggingElement = null
+    setTimeout(() => {
+      document.removeEventListener('click', this.captureClick, true)
+    }, 0)
   }
 
   private update = ({
@@ -225,6 +228,8 @@ export default class Drag<E extends DSInputElement> {
           left: `${this.DS.getCurrentCursorPosition().x - 14}px`,
           top: `${this.DS.getCurrentCursorPosition().y - 15}px`,
         })
+
+        document.addEventListener('click', this.captureClick, true)
       }
 
       document.body.appendChild(this._draggingElement)
@@ -309,6 +314,10 @@ export default class Drag<E extends DSInputElement> {
     if (this._readyDropZone) {
       this._readyDropZone.classList.add('ds-dropzone-ready-drop')
     }
+  }
+
+  private captureClick(event: MouseEvent) {
+    event.stopPropagation()
   }
 
   ////
