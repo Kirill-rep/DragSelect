@@ -1,13 +1,20 @@
-import { DSInputElement, Settings } from "../types"
+import { DSInputElement, Settings } from '../types'
 
 const wrongTypeWarn = (key: string, type: string) =>
   console.warn(
     `[DragSelect] TypeIssue: setting "${key}" is not of type "${type}".`
   )
 
-const hydrateHelper = <K extends string, V>(key: K, value: V, withFallback?: boolean, fallback?: V): {
-  [key in K]: V;
-} | {} => {
+const hydrateHelper = <K extends string, V>(
+  key: K,
+  value: V,
+  withFallback?: boolean,
+  fallback?: V
+):
+  | {
+      [key in K]: V
+    }
+  | {} => {
   // no value available
   if (value === undefined) return withFallback ? { [key]: fallback } : {}
   // force unsetting of a value
@@ -93,154 +100,180 @@ const hydrateHelper = <K extends string, V>(key: K, value: V, withFallback?: boo
  * - - if not provided from the settings object (or wrong type), the fallback will be used
  * (the fallback value for each setting is the last prop of the hydrateHelper)
  */
-export const hydrateSettings = <E extends DSInputElement>(settings: Settings<E>, withFallback: boolean): Required<Settings<E>> => ({
-  ...hydrateHelper('area', settings.area, withFallback, document),
-  ...hydrateHelper('selectables', settings.selectables, withFallback, null),
-  ...hydrateHelper(
-    'autoScrollSpeed',
-    settings.autoScrollSpeed,
-    withFallback,
-    5
-  ),
-  ...hydrateHelper(
-    'overflowTolerance',
-    settings.overflowTolerance,
-    withFallback,
-    { x: 25, y: 25 }
-  ),
-  ...hydrateHelper('zoom', settings.zoom, withFallback, 1),
-  ...hydrateHelper('customStyles', settings.customStyles, withFallback, false),
-  ...hydrateHelper(
-    'multiSelectMode',
-    settings.multiSelectMode,
-    withFallback,
-    false
-  ),
-  ...hydrateHelper(
-    'multiSelectToggling',
-    settings.multiSelectToggling,
-    withFallback,
-    true
-  ),
-  ...hydrateHelper('multiSelectKeys', settings.multiSelectKeys, withFallback, [
-    'Control',
-    'Shift',
-    'Meta',
-  ]),
-  ...hydrateHelper('selector', settings.selector, withFallback, null),
-  ...hydrateHelper(
-    'selectionThreshold',
-    settings.selectionThreshold,
-    withFallback,
-    0
-  ),
-  ...hydrateHelper('draggability', settings.draggability, withFallback, true),
-  ...hydrateHelper('immediateDrag', settings.immediateDrag, withFallback, true),
-  ...hydrateHelper('keyboardDrag', settings.keyboardDrag, withFallback, true),
-  ...hydrateHelper('dragKeys', settings.dragKeys, withFallback, {
-    up: ['ArrowUp'],
-    down: ['ArrowDown'],
-    left: ['ArrowLeft'],
-    right: ['ArrowRight'],
-  }),
-  ...hydrateHelper(
-    'keyboardDragSpeed',
-    settings.keyboardDragSpeed,
-    withFallback,
-    10
-  ),
-  ...hydrateHelper('useTransform', settings.useTransform, withFallback, true),
-  ...hydrateHelper(
-    'refreshMemoryRate',
-    settings.refreshMemoryRate,
-    withFallback,
-    80
-  ),
-  ...hydrateHelper('dropZones', settings.dropZones, withFallback, []),
-  ...hydrateHelper(
-    'dropInsideThreshold',
-    settings.dropInsideThreshold,
-    withFallback,
-    1
-  ),
-  ...hydrateHelper(
-    'dropTargetThreshold',
-    settings.dropTargetThreshold,
-    withFallback,
-    0
-  ),
-  ...hydrateHelper(
-    'usePointerEvents',
-    settings.usePointerEvents,
-    withFallback,
-    false
-  ),
-  ...hydrateHelper('hoverClass', settings.hoverClass, withFallback, 'ds-hover'),
-  ...hydrateHelper(
-    'selectableClass',
-    settings.selectableClass,
-    withFallback,
-    'ds-selectable'
-  ),
-  ...hydrateHelper(
-    'selectedClass',
-    settings.selectedClass,
-    withFallback,
-    'ds-selected'
-  ),
-  ...hydrateHelper(
-    'selectorClass',
-    settings.selectorClass,
-    withFallback,
-    'ds-selector'
-  ),
-  ...hydrateHelper(
-    'selectorAreaClass',
-    settings.selectorAreaClass,
-    withFallback,
-    'ds-selector-area'
-  ),
-  ...hydrateHelper(
-    'droppedTargetClass',
-    settings.droppedTargetClass,
-    withFallback,
-    'ds-dropped-target'
-  ),
-  ...hydrateHelper(
-    'droppedInsideClass',
-    settings.droppedInsideClass,
-    withFallback,
-    'ds-dropped-inside'
-  ),
-  ...hydrateHelper(
-    'droppableClass',
-    settings.droppableClass,
-    withFallback,
-    'ds-droppable'
-  ),
-  ...hydrateHelper(
-    'dropZoneClass',
-    settings.dropZoneClass,
-    withFallback,
-    'ds-dropzone'
-  ),
-  ...hydrateHelper(
-    'dropZoneReadyClass',
-    settings.dropZoneReadyClass,
-    withFallback,
-    'ds-dropzone-ready'
-  ),
-  ...hydrateHelper(
-    'dropZoneTargetClass',
-    settings.dropZoneTargetClass,
-    withFallback,
-    'ds-dropzone-target'
-  ),
-  ...hydrateHelper(
-    'dropZoneInsideClass',
-    settings.dropZoneInsideClass,
-    withFallback,
-    'ds-dropzone-inside'
-  ),
-  ...hydrateHelper('useLayers', settings.useLayers, withFallback, true),
-  } as Required<Settings<E>>)
+export const hydrateSettings = <E extends DSInputElement>(
+  settings: Settings<E>,
+  withFallback: boolean
+): Required<Settings<E>> =>
+  ({
+    ...hydrateHelper('area', settings.area, withFallback, document),
+    ...hydrateHelper('selectables', settings.selectables, withFallback, null),
+    ...hydrateHelper(
+      'autoScrollSpeed',
+      settings.autoScrollSpeed,
+      withFallback,
+      5
+    ),
+    ...hydrateHelper(
+      'overflowTolerance',
+      settings.overflowTolerance,
+      withFallback,
+      { x: 25, y: 25 }
+    ),
+    ...hydrateHelper('zoom', settings.zoom, withFallback, 1),
+    ...hydrateHelper(
+      'customStyles',
+      settings.customStyles,
+      withFallback,
+      false
+    ),
+    ...hydrateHelper(
+      'multiSelectMode',
+      settings.multiSelectMode,
+      withFallback,
+      false
+    ),
+    ...hydrateHelper(
+      'multiSelectToggling',
+      settings.multiSelectToggling,
+      withFallback,
+      true
+    ),
+    ...hydrateHelper(
+      'multiSelectKeys',
+      settings.multiSelectKeys,
+      withFallback,
+      ['Control', 'Shift', 'Meta']
+    ),
+    ...hydrateHelper('selector', settings.selector, withFallback, null),
+    ...hydrateHelper(
+      'selectionThreshold',
+      settings.selectionThreshold,
+      withFallback,
+      0
+    ),
+    ...hydrateHelper('draggability', settings.draggability, withFallback, true),
+    ...hydrateHelper(
+      'immediateDrag',
+      settings.immediateDrag,
+      withFallback,
+      true
+    ),
+    ...hydrateHelper('keyboardDrag', settings.keyboardDrag, withFallback, true),
+    ...hydrateHelper('dragKeys', settings.dragKeys, withFallback, {
+      up: ['ArrowUp'],
+      down: ['ArrowDown'],
+      left: ['ArrowLeft'],
+      right: ['ArrowRight'],
+    }),
+    ...hydrateHelper(
+      'keyboardDragSpeed',
+      settings.keyboardDragSpeed,
+      withFallback,
+      10
+    ),
+    ...hydrateHelper('useTransform', settings.useTransform, withFallback, true),
+    ...hydrateHelper(
+      'refreshMemoryRate',
+      settings.refreshMemoryRate,
+      withFallback,
+      80
+    ),
+    ...hydrateHelper('dropZones', settings.dropZones, withFallback, []),
+    ...hydrateHelper(
+      'dropInsideThreshold',
+      settings.dropInsideThreshold,
+      withFallback,
+      1
+    ),
+    ...hydrateHelper(
+      'dropTargetThreshold',
+      settings.dropTargetThreshold,
+      withFallback,
+      0
+    ),
+    ...hydrateHelper(
+      'usePointerEvents',
+      settings.usePointerEvents,
+      withFallback,
+      false
+    ),
+    ...hydrateHelper(
+      'hoverClass',
+      settings.hoverClass,
+      withFallback,
+      'ds-hover'
+    ),
+    ...hydrateHelper(
+      'selectableClass',
+      settings.selectableClass,
+      withFallback,
+      'ds-selectable'
+    ),
+    ...hydrateHelper(
+      'selectedClass',
+      settings.selectedClass,
+      withFallback,
+      'ds-selected'
+    ),
+    ...hydrateHelper(
+      'selectedRowClass',
+      settings.selectedRowClass,
+      withFallback,
+      'selection'
+    ),
+    ...hydrateHelper(
+      'selectorClass',
+      settings.selectorClass,
+      withFallback,
+      'ds-selector'
+    ),
+    ...hydrateHelper(
+      'selectorAreaClass',
+      settings.selectorAreaClass,
+      withFallback,
+      'ds-selector-area'
+    ),
+    ...hydrateHelper(
+      'droppedTargetClass',
+      settings.droppedTargetClass,
+      withFallback,
+      'ds-dropped-target'
+    ),
+    ...hydrateHelper(
+      'droppedInsideClass',
+      settings.droppedInsideClass,
+      withFallback,
+      'ds-dropped-inside'
+    ),
+    ...hydrateHelper(
+      'droppableClass',
+      settings.droppableClass,
+      withFallback,
+      'ds-droppable'
+    ),
+    ...hydrateHelper(
+      'dropZoneClass',
+      settings.dropZoneClass,
+      withFallback,
+      'ds-dropzone'
+    ),
+    ...hydrateHelper(
+      'dropZoneReadyClass',
+      settings.dropZoneReadyClass,
+      withFallback,
+      'ds-dropzone-ready'
+    ),
+    ...hydrateHelper(
+      'dropZoneTargetClass',
+      settings.dropZoneTargetClass,
+      withFallback,
+      'ds-dropzone-target'
+    ),
+    ...hydrateHelper(
+      'dropZoneInsideClass',
+      settings.dropZoneInsideClass,
+      withFallback,
+      'ds-dropzone-inside'
+    ),
+    ...hydrateHelper('useLayers', settings.useLayers, withFallback, true),
+  }) as Required<Settings<E>>

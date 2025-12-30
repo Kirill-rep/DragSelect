@@ -120,7 +120,7 @@
             };
         const rect = area.getBoundingClientRect();
         const parent = area.parentElement;
-        const areaSelectorHeight = parent ? parent.clientHeight - 135 : null;
+        const areaSelectorHeight = parent ? parent.clientHeight - 2 : null;
         return {
             top: rect.top,
             left: rect.left,
@@ -307,7 +307,7 @@
                 paddingBottom: tempStyles.paddingBottom,
                 paddingLeft: tempStyles.paddingLeft,
                 height: parentNodeArea
-                    ? `${parentNodeArea.clientHeight - 120}`
+                    ? `${parentNodeArea.clientHeight}`
                     : tempStyles.height,
             });
         }
@@ -1982,6 +1982,7 @@
         PS;
         Settings;
         _selectedElements;
+        _selectedFElements;
         _isSelecteedElementPass;
         constructor({ DS, PS }) {
             super();
@@ -1989,6 +1990,7 @@
             this.PS = PS;
             this.Settings = this.DS.stores.SettingsStore.s;
             this._selectedElements = [];
+            this._selectedFElements = [];
         }
         add(element, selection) {
             if (!element || super.has(element))
@@ -1999,13 +2001,14 @@
             };
             const row = element.parentElement;
             if (row && selection)
-                row.classList.add('selection');
+                row.classList.add(this.Settings.selectedRowClass);
             this.PS.publish('Selected:added:pre', publishData);
             super.add(element);
             element.classList.add(this.Settings.selectedClass);
             if (element.closest('.ds-folder')) {
                 this._selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
                 this._isSelecteedElementPass = false;
+                this._selectedFElements = this._selectedElements;
             }
             else {
                 this._selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
@@ -2026,13 +2029,14 @@
             };
             const row = element.parentElement;
             if (row)
-                row.classList.remove('selection');
+                row.classList.remove(this.Settings.selectedRowClass);
             this.PS.publish('Selected:removed:pre', publishData);
             const deleted = super.delete(element);
             element.classList.remove(this.Settings.selectedClass);
             if (element.closest('.ds-folder')) {
                 this._selectedElements = Array.from(document.querySelectorAll('.ds-selected.dsFolderSelection'));
                 this._isSelecteedElementPass = false;
+                this._selectedFElements = this._selectedElements;
             }
             else {
                 this._selectedElements = Array.from(document.querySelectorAll('.ds-selected:not(.dsFolderSelection)'));
@@ -2131,13 +2135,13 @@
         }
         addAll = (elements) => elements.forEach((el) => this.add(el, true));
         deleteAll = (elements) => elements.forEach((el) => this.delete(el));
-        updateSelectedClasses = () => {
+        updateSelectedRowClasses = () => {
             if (this.DS.Interaction.isDragging || this.DS.continue)
                 return;
-            this._selectedElements.forEach((el) => {
+            this._selectedFElements.forEach((el) => {
                 const row = el.parentElement;
                 if (row)
-                    row.classList.add('selection');
+                    row.classList.add(this.Settings.selectedRowClass);
             });
         };
         get elements() {
@@ -3005,11 +3009,7 @@
         ...hydrateHelper('customStyles', settings.customStyles, withFallback, false),
         ...hydrateHelper('multiSelectMode', settings.multiSelectMode, withFallback, false),
         ...hydrateHelper('multiSelectToggling', settings.multiSelectToggling, withFallback, true),
-        ...hydrateHelper('multiSelectKeys', settings.multiSelectKeys, withFallback, [
-            'Control',
-            'Shift',
-            'Meta',
-        ]),
+        ...hydrateHelper('multiSelectKeys', settings.multiSelectKeys, withFallback, ['Control', 'Shift', 'Meta']),
         ...hydrateHelper('selector', settings.selector, withFallback, null),
         ...hydrateHelper('selectionThreshold', settings.selectionThreshold, withFallback, 0),
         ...hydrateHelper('draggability', settings.draggability, withFallback, true),
@@ -3031,6 +3031,7 @@
         ...hydrateHelper('hoverClass', settings.hoverClass, withFallback, 'ds-hover'),
         ...hydrateHelper('selectableClass', settings.selectableClass, withFallback, 'ds-selectable'),
         ...hydrateHelper('selectedClass', settings.selectedClass, withFallback, 'ds-selected'),
+        ...hydrateHelper('selectedRowClass', settings.selectedRowClass, withFallback, 'selection'),
         ...hydrateHelper('selectorClass', settings.selectorClass, withFallback, 'ds-selector'),
         ...hydrateHelper('selectorAreaClass', settings.selectorAreaClass, withFallback, 'ds-selector-area'),
         ...hydrateHelper('droppedTargetClass', settings.droppedTargetClass, withFallback, 'ds-dropped-target'),

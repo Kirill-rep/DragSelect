@@ -407,6 +407,8 @@ type Settings<E extends DSInputElement> = {
     selectableClass?: string;
     /** [=ds-selected] the class assigned to the selected items */
     selectedClass?: string;
+    /** [=selection] the class assigned to the selected items row*/
+    selectedRowClass?: string;
     /** [=ds-selector] the class assigned to the square selector helper */
     selectorClass?: string;
     /** [=ds-selector-area] the class assigned to the square in which the selector resides. By default it's invisible */
@@ -512,6 +514,7 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     private PS;
     private Settings;
     private _selectedElements;
+    private _selectedFElements;
     private _isSelecteedElementPass?;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
@@ -526,7 +529,7 @@ declare class SelectedSet<E extends DSInputElement> extends Set<E> {
     toggle(element: E): E;
     addAll: (elements: E[]) => void;
     deleteAll: (elements: E[]) => void;
-    updateSelectedClasses: () => void;
+    updateSelectedRowClasses: () => void;
     get elements(): E[];
     get rects(): Map<E, DSBoundingRect>;
 }

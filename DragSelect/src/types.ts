@@ -81,6 +81,8 @@ export type Settings<E extends DSInputElement> = {
   selectableClass?: string
   /** [=ds-selected] the class assigned to the selected items */
   selectedClass?: string
+  /** [=selection] the class assigned to the selected items row*/
+  selectedRowClass?: string
   /** [=ds-selector] the class assigned to the square selector helper */
   selectorClass?: string
   /** [=ds-selector-area] the class assigned to the square in which the selector resides. By default it's invisible */

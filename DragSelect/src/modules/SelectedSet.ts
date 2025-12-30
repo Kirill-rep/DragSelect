@@ -25,6 +25,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   private PS: PubSub<E>
   private Settings: DSSettings<E>
   private _selectedElements: E[]
+  private _selectedFElements: E[]
   private _isSelecteedElementPass?: boolean
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
@@ -33,6 +34,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     this.PS = PS
     this.Settings = this.DS.stores.SettingsStore.s
     this._selectedElements = []
+    this._selectedFElements = []
   }
 
   public add(element?: E, selection?: boolean) {
@@ -43,7 +45,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
     }
 
     const row = element.parentElement
-    if (row && selection) row.classList.add('selection')
+    if (row && selection) row.classList.add(this.Settings.selectedRowClass)
 
     this.PS.publish('Selected:added:pre', publishData)
     super.add(element)
@@ -55,6 +57,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
         document.querySelectorAll('.ds-selected.dsFolderSelection')
       ) as E[]
       this._isSelecteedElementPass = false
+      this._selectedFElements = this._selectedElements
     } else {
       this._selectedElements = Array.from(
         document.querySelectorAll('.ds-selected:not(.dsFolderSelection)')
@@ -76,8 +79,9 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
       items: this.elements,
       item: element,
     }
+
     const row = element.parentElement
-    if (row) row.classList.remove('selection')
+    if (row) row.classList.remove(this.Settings.selectedRowClass)
     this.PS.publish('Selected:removed:pre', publishData)
     const deleted = super.delete(element)
 
@@ -88,6 +92,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
         document.querySelectorAll('.ds-selected.dsFolderSelection')
       ) as E[]
       this._isSelecteedElementPass = false
+      this._selectedFElements = this._selectedElements
     } else {
       this._selectedElements = Array.from(
         document.querySelectorAll('.ds-selected:not(.dsFolderSelection)')
@@ -215,11 +220,11 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   public deleteAll = (elements: E[]) =>
     elements.forEach((el) => this.delete(el))
 
-  public updateSelectedClasses = () => {
+  public updateSelectedRowClasses = () => {
     if (this.DS.Interaction.isDragging || this.DS.continue) return
-    this._selectedElements.forEach((el) => {
+    this._selectedFElements.forEach((el) => {
       const row = el.parentElement
-      if (row) row.classList.add('selection')
+      if (row) row.classList.add(this.Settings.selectedRowClass)
     })
   }
 

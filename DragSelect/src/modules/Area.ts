@@ -213,7 +213,7 @@ export default class Area<E extends DSInputElement> {
       paddingBottom: tempStyles.paddingBottom,
       paddingLeft: tempStyles.paddingLeft,
       height: parentNodeArea
-        ? `${parentNodeArea.clientHeight - 120}`
+        ? `${parentNodeArea.clientHeight}`
         : tempStyles.height,
     })
   }
