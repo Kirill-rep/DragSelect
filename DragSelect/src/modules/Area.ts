@@ -199,9 +199,6 @@ export default class Area<E extends DSInputElement> {
       )
     else tempStyles = window.getComputedStyle(this.HTMLNode!)
 
-    const parentNodeArea =
-      this.HTMLNode instanceof Document ? null : this.HTMLNode.parentElement
-
     return (this._computedStyle = {
       borderTopWidth: tempStyles.borderTopWidth,
       borderBottomWidth: tempStyles.borderBottomWidth,
@@ -212,9 +209,13 @@ export default class Area<E extends DSInputElement> {
       paddingRight: tempStyles.paddingRight,
       paddingBottom: tempStyles.paddingBottom,
       paddingLeft: tempStyles.paddingLeft,
-      height: parentNodeArea
-        ? `${parentNodeArea.clientHeight}`
-        : tempStyles.height,
+      height:
+        this.containerSelector && this.containerOffset
+          ? `${
+              this.containerSelector.clientHeight -
+              this.containerOffset.clientHeight
+            }`
+          : tempStyles.height,
     })
   }
 
@@ -223,12 +224,22 @@ export default class Area<E extends DSInputElement> {
     // if (this._rect) return this._rect
     return (this._rect = getAreaRect(
       this.HTMLNode,
-      this.DS.stores.SettingsStore.s.zoom
+      this.DS.stores.SettingsStore.s.zoom,
+      this.containerSelector,
+      this.containerOffset
     ))
   }
 
   private get parentNodes() {
     if (this._parentNodes) return this._parentNodes
     return (this._parentNodes = getAllParentNodes(this.HTMLNode))
+  }
+
+  private get containerSelector() {
+    return this.DS.stores.SettingsStore.s.areaContainerSelector
+  }
+
+  private get containerOffset() {
+    return this.DS.stores.SettingsStore.s.areaContainerOffset
   }
 }

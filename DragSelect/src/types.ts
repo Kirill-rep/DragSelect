@@ -87,6 +87,8 @@ export type Settings<E extends DSInputElement> = {
   selectorClass?: string
   /** [=ds-selector-area] the class assigned to the square in which the selector resides. By default it's invisible */
   selectorAreaClass?: string
+  areaContainerSelector?: Element | null
+  areaContainerOffset?: Element | null
   /** [=ds-dropped-target] on an item corresponding the target dropzone. This is also the prefix for ds-dropped-target-${zone.id} */
   droppedTargetClass?: string
   /** [=ds-dropped-inside] on an item that is within its dropzone bounds after a drop. This is also the prefix for ds-dropped-inside-${zone.id} */

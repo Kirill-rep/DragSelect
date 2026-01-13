@@ -99,6 +99,7 @@ export default class SelectorArea<E extends DSInputElement> {
     const { style } = this.HTMLNode
     const scrollX = window.scrollX
     const scrollY = window.scrollY
+
     this.HTMLNodeSize = {
       top: rect.top + border.top + scrollY,
       left: rect.left + border.left + scrollX,

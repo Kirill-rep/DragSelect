@@ -234,6 +234,18 @@ export const hydrateSettings = <E extends DSInputElement>(
       'ds-selector-area'
     ),
     ...hydrateHelper(
+      'areaContainerSelector',
+      settings.areaContainerSelector,
+      withFallback,
+      null
+    ),
+    ...hydrateHelper(
+      'areaContainerOffset',
+      settings.areaContainerOffset,
+      withFallback,
+      null
+    ),
+    ...hydrateHelper(
       'droppedTargetClass',
       settings.droppedTargetClass,
       withFallback,

@@ -4,7 +4,13 @@ import { DSArea, DSBoundingRect } from '../types'
  * values of an area. If area is document then everything
  * except the sizes will be nulled.
  */
-export const getAreaRect = (area: DSArea, zoom: number): DSBoundingRect => {
+
+export const getAreaRect = (
+  area: DSArea,
+  zoom: number,
+  containerSelector?: Element | null,
+  containerOffset?: Element | null
+): DSBoundingRect => {
   if (area instanceof Document)
     return {
       top: 0,
@@ -16,8 +22,11 @@ export const getAreaRect = (area: DSArea, zoom: number): DSBoundingRect => {
     }
 
   const rect = area.getBoundingClientRect()
-  const parent = area.parentElement
-  const areaSelectorHeight = parent ? parent.clientHeight - 2 : null
+
+  const areaSelectorHeight =
+    containerSelector && containerOffset
+      ? containerSelector?.clientHeight - containerOffset?.clientHeight - 3
+      : null
 
   return {
     top: rect.top,

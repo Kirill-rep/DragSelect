@@ -70,8 +70,8 @@ export default class Interaction<E extends DSInputElement> {
     this.KeyStore = this.DS.stores.KeyStore
     // not on every modification, just on change of area
     this.PS.subscribe('Settings:updated:area', ({ settings }) => {
-      this.removeAreaEventListeners(settings['area:pre'])
-      this.setAreaEventListeners(settings['area'])
+      this.removeAreaEventListeners()
+      this.setAreaEventListeners()
       this.removeBodyScrollListener()
       this.setBodyScrollListener()
     })
@@ -262,7 +262,7 @@ export default class Interaction<E extends DSInputElement> {
     }
   }
 
-  stop = (area = this.DS.Area.HTMLNode) => {
+  stop = (area = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
     this.removeAreaEventListeners(area)
     this.removeBodyScrollListener()
     this.removeDocEventListeners()
@@ -309,31 +309,35 @@ export default class Interaction<E extends DSInputElement> {
   //////////////////////////////////////////////////////////////////////////////////////
   // Event Listeners
 
-  private setAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
+  private setAreaEventListeners = (
+    area = this.DS.stores.SettingsStore.s.areaContainerSelector
+  ) => {
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-    const areaParent = area.parentElement
-    if (!areaParent) return
+    console.log('areaParent', area)
+
+    if (!area) return
     // if (this.Settings.usePointerEvents)
     //   areaParent.addEventListener('pointerdown', this.start, {
     //     passive: false,
     //   })
-    else areaParent.addEventListener('mousedown', this.start)
-    areaParent.addEventListener('touchstart', this.start, {
+    else area.addEventListener('mousedown', this.start)
+    area.addEventListener('touchstart', this.start, {
       passive: false,
     })
   }
-  private removeAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
-    const areaParent = area.parentElement
-    if (!areaParent) return
+  private removeAreaEventListeners = (
+    area = this.DS.stores.SettingsStore.s.areaContainerSelector
+  ) => {
+    if (!area) return
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-    if (this.Settings.usePointerEvents) {
-      areaParent.removeEventListener('pointerdown', this.start, {
-        // @ts-ignore
-        passive: false,
-      })
-    } else areaParent.removeEventListener('mousedown', this.start)
-    areaParent.removeEventListener('touchstart', this.start, {
-      // @ts-ignore
+    // if (this.Settings.usePointerEvents) {
+    //   area.removeEventListener('pointerdown', this.start, {
+    //     // @ts-ignore
+    //     passive: false,
+    //   })
+    else area.removeEventListener('mousedown', this.start)
+    // @ts-ignore
+    area.removeEventListener('touchstart', this.start, {
       passive: false,
     })
   }

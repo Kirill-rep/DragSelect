@@ -108,7 +108,7 @@
      * values of an area. If area is document then everything
      * except the sizes will be nulled.
      */
-    const getAreaRect = (area, zoom) => {
+    const getAreaRect = (area, zoom, containerSelector, containerOffset) => {
         if (area instanceof Document)
             return {
                 top: 0,
@@ -119,13 +119,14 @@
                 height: window.innerHeight,
             };
         const rect = area.getBoundingClientRect();
-        const parent = area.parentElement;
-        const areaSelectorHeight = parent ? parent.clientHeight - 2 : null;
+        const areaSelectorHeight = containerSelector && containerOffset
+            ? containerSelector?.clientHeight - containerOffset?.clientHeight - 3
+            : null;
         return {
             top: rect.top,
             left: rect.left,
             bottom: rect.bottom,
-            right: rect.right,
+            right: rect.right - 30,
             width: (area.clientWidth || rect.width) * zoom,
             height: (areaSelectorHeight || area.clientHeight || rect.height) * zoom,
         };
@@ -295,7 +296,6 @@
                 tempStyles = window.getComputedStyle(this.HTMLNode.body || this.HTMLNode.documentElement);
             else
                 tempStyles = window.getComputedStyle(this.HTMLNode);
-            const parentNodeArea = this.HTMLNode instanceof Document ? null : this.HTMLNode.parentElement;
             return (this._computedStyle = {
                 borderTopWidth: tempStyles.borderTopWidth,
                 borderBottomWidth: tempStyles.borderBottomWidth,
@@ -306,20 +306,27 @@
                 paddingRight: tempStyles.paddingRight,
                 paddingBottom: tempStyles.paddingBottom,
                 paddingLeft: tempStyles.paddingLeft,
-                height: parentNodeArea
-                    ? `${parentNodeArea.clientHeight}`
+                height: this.containerSelector && this.containerOffset
+                    ? `${this.containerSelector.clientHeight -
+                    this.containerOffset.clientHeight}`
                     : tempStyles.height,
             });
         }
         /** The element rect (caches result) (without scrollbar or borders) */
         get rect() {
             // if (this._rect) return this._rect
-            return (this._rect = getAreaRect(this.HTMLNode, this.DS.stores.SettingsStore.s.zoom));
+            return (this._rect = getAreaRect(this.HTMLNode, this.DS.stores.SettingsStore.s.zoom, this.containerSelector, this.containerOffset));
         }
         get parentNodes() {
             if (this._parentNodes)
                 return this._parentNodes;
             return (this._parentNodes = getAllParentNodes(this.HTMLNode));
+        }
+        get containerSelector() {
+            return this.DS.stores.SettingsStore.s.areaContainerSelector;
+        }
+        get containerOffset() {
+            return this.DS.stores.SettingsStore.s.areaContainerOffset;
         }
     }
 
@@ -1177,8 +1184,8 @@
             this.KeyStore = this.DS.stores.KeyStore;
             // not on every modification, just on change of area
             this.PS.subscribe('Settings:updated:area', ({ settings }) => {
-                this.removeAreaEventListeners(settings['area:pre']);
-                this.setAreaEventListeners(settings['area']);
+                this.removeAreaEventListeners();
+                this.setAreaEventListeners();
                 this.removeBodyScrollListener();
                 this.setBodyScrollListener();
             });
@@ -1318,7 +1325,7 @@
                 });
             }
         };
-        stop = (area = this.DS.Area.HTMLNode) => {
+        stop = (area = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
             this.removeAreaEventListeners(area);
             this.removeBodyScrollListener();
             this.removeDocEventListeners();
@@ -1350,38 +1357,36 @@
         };
         //////////////////////////////////////////////////////////////////////////////////////
         // Event Listeners
-        setAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
+        setAreaEventListeners = (area = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-            const areaParent = area.parentElement;
-            if (!areaParent)
+            console.log('areaParent', area);
+            if (!area)
                 return;
             // if (this.Settings.usePointerEvents)
             //   areaParent.addEventListener('pointerdown', this.start, {
             //     passive: false,
             //   })
             else
-                areaParent.addEventListener('mousedown', this.start);
-            areaParent.addEventListener('touchstart', this.start, {
+                area.addEventListener('mousedown', this.start);
+            area.addEventListener('touchstart', this.start, {
                 passive: false,
             });
         };
-        removeAreaEventListeners = (area = this.DS.Area.HTMLNode) => {
-            const areaParent = area.parentElement;
-            if (!areaParent)
+        removeAreaEventListeners = (area = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
+            if (!area)
                 return;
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-            if (this.Settings.usePointerEvents) {
-                areaParent.removeEventListener('pointerdown', this.start, {
-                    // @ts-ignore
-                    passive: false,
-                });
-            }
+            // if (this.Settings.usePointerEvents) {
+            //   area.removeEventListener('pointerdown', this.start, {
+            //     // @ts-ignore
+            //     passive: false,
+            //   })
             else
-                areaParent.removeEventListener('mousedown', this.start);
-            areaParent.removeEventListener('touchstart', this.start, {
-                // @ts-ignore
-                passive: false,
-            });
+                area.removeEventListener('mousedown', this.start);
+            // area.removeEventListener('touchstart', this.start, {
+            //   // @ts-ignore
+            //   passive: false,
+            // })
         };
         setDocEventListeners = () => {
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
@@ -3034,6 +3039,8 @@
         ...hydrateHelper('selectedRowClass', settings.selectedRowClass, withFallback, 'selection'),
         ...hydrateHelper('selectorClass', settings.selectorClass, withFallback, 'ds-selector'),
         ...hydrateHelper('selectorAreaClass', settings.selectorAreaClass, withFallback, 'ds-selector-area'),
+        ...hydrateHelper('areaContainerSelector', settings.areaContainerSelector, withFallback, null),
+        ...hydrateHelper('areaContainerOffset', settings.areaContainerOffset, withFallback, null),
         ...hydrateHelper('droppedTargetClass', settings.droppedTargetClass, withFallback, 'ds-dropped-target'),
         ...hydrateHelper('droppedInsideClass', settings.droppedInsideClass, withFallback, 'ds-dropped-inside'),
         ...hydrateHelper('droppableClass', settings.droppableClass, withFallback, 'ds-droppable'),

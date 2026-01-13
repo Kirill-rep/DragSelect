@@ -103,7 +103,7 @@ declare class Interaction<E extends DSInputElement> {
      * Making DragSelect accessible for everyone!
      */
     private onClick;
-    stop: (area?: DSArea) => void;
+    stop: (area?: Element | null) => void;
     update: ({ event, scroll_directions, scroll_multiplier, }: {
         event?: InteractionEvent | undefined;
         scroll_directions?: DSEdges | undefined;
@@ -413,6 +413,8 @@ type Settings<E extends DSInputElement> = {
     selectorClass?: string;
     /** [=ds-selector-area] the class assigned to the square in which the selector resides. By default it's invisible */
     selectorAreaClass?: string;
+    areaContainerSelector?: Element | null;
+    areaContainerOffset?: Element | null;
     /** [=ds-dropped-target] on an item corresponding the target dropzone. This is also the prefix for ds-dropped-target-${zone.id} */
     droppedTargetClass?: string;
     /** [=ds-dropped-inside] on an item that is within its dropzone bounds after a drop. This is also the prefix for ds-dropped-inside-${zone.id} */
@@ -613,6 +615,8 @@ declare class Area<E extends DSInputElement> {
     /** The element rect (caches result) (without scrollbar or borders) */
     get rect(): DSBoundingRect;
     private get parentNodes();
+    private get containerSelector();
+    private get containerOffset();
 }
 
 declare class Drag<E extends DSInputElement> {
