@@ -313,7 +313,6 @@ export default class Interaction<E extends DSInputElement> {
     area = this.DS.stores.SettingsStore.s.areaContainerSelector
   ) => {
     // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-    console.log('areaParent', area)
 
     if (!area) return
     // if (this.Settings.usePointerEvents)

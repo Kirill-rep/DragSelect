@@ -126,7 +126,7 @@
             top: rect.top,
             left: rect.left,
             bottom: rect.bottom,
-            right: rect.right - 30,
+            right: rect.right,
             width: (area.clientWidth || rect.width) * zoom,
             height: (areaSelectorHeight || area.clientHeight || rect.height) * zoom,
         };
@@ -1359,7 +1359,6 @@
         // Event Listeners
         setAreaEventListeners = (area = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
-            console.log('areaParent', area);
             if (!area)
                 return;
             // if (this.Settings.usePointerEvents)
@@ -1383,10 +1382,10 @@
             //   })
             else
                 area.removeEventListener('mousedown', this.start);
-            // area.removeEventListener('touchstart', this.start, {
-            //   // @ts-ignore
-            //   passive: false,
-            // })
+            // @ts-ignore
+            area.removeEventListener('touchstart', this.start, {
+                passive: false,
+            });
         };
         setDocEventListeners = () => {
             // @TODO: fix pointer events mixing issue see [PR](https://github.com/ThibaultJanBeyer/DragSelect/pull/128#issuecomment-1154885289)
