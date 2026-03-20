@@ -182,6 +182,10 @@ class Area {
     _computedStyle;
     _computedBorder;
     _rect;
+    _scrollThrottleTimeout;
+    _scrollHandler;
+    _lastScrollX = 0;
+    _lastScrollY = 0;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
@@ -191,8 +195,10 @@ class Area {
         this.PS.subscribe('Settings:updated:area', ({ settings: { area } }) => this.setArea(area));
         this.PS.subscribe('Interaction:init', this.init);
         this.PS.subscribe('Interaction:end', this.reset);
+        this.initPermanentScrollListener();
     }
     setArea = (area) => {
+        this.cleanupScrollListeners();
         this.reset();
         this._node = area;
         handleElementPositionAttribute({
@@ -204,6 +210,7 @@ class Area {
             this.PS.publish('Area:modified:pre', { item: this.HTMLNode });
             this.reset();
             this.PS.publish('Area:modified', { item: this.HTMLNode });
+            this.initPermanentScrollListener();
         });
     };
     init = () => {
@@ -241,6 +248,7 @@ class Area {
     };
     stop = () => {
         this._observers?.cleanup();
+        this.cleanupScrollListeners();
         this.reset();
     };
     /// ///////////////////////////////////////////////////////////////////////////////////
@@ -306,6 +314,42 @@ class Area {
                 : tempStyles.height,
         });
     }
+    initPermanentScrollListener = () => {
+        this._scrollHandler = () => {
+            console.log(this.DS.Selector.scrollSelector);
+            if (this._scrollThrottleTimeout || this.DS.Selector.scrollSelector)
+                return;
+            this._scrollThrottleTimeout = window.setTimeout(() => {
+                this.updateRectOnScroll();
+                this._scrollThrottleTimeout = undefined;
+            }, 100);
+        };
+        document.body.addEventListener('scroll', this._scrollHandler, {
+            passive: true,
+        });
+    };
+    updateRectOnScroll = () => {
+        const currentScrollX = window.document.body?.scrollLeft;
+        const currentScrollY = window.document.body?.scrollTop;
+        if (currentScrollX !== this._lastScrollX ||
+            currentScrollY !== this._lastScrollY) {
+            this._lastScrollX = currentScrollX;
+            this._lastScrollY = currentScrollY;
+            this._rect = undefined;
+            this._computedStyle = undefined;
+            this.PS.publish('Area:modified:pre', { item: this.HTMLNode });
+            this.PS.publish('Area:modified', { item: this.HTMLNode });
+        }
+    };
+    cleanupScrollListeners = () => {
+        if (this._scrollThrottleTimeout) {
+            clearTimeout(this._scrollThrottleTimeout);
+            this._scrollThrottleTimeout = undefined;
+        }
+        if (this._scrollHandler) {
+            document.body.removeEventListener('scroll', this._scrollHandler);
+        }
+    };
     /** The element rect (caches result) (without scrollbar or borders) */
     get rect() {
         // if (this._rect) return this._rect

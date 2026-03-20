@@ -67,6 +67,10 @@ export default class Area<E extends DSInputElement> {
   }
   private _computedBorder?: DSEdgesObj
   private _rect?: DSBoundingRect
+  private _scrollThrottleTimeout?: number
+  private _scrollHandler?: (e: Event) => void
+  private _lastScrollX = 0
+  private _lastScrollY = 0
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
@@ -81,9 +85,11 @@ export default class Area<E extends DSInputElement> {
 
     this.PS.subscribe('Interaction:init', this.init)
     this.PS.subscribe('Interaction:end', this.reset)
+    this.initPermanentScrollListener()
   }
 
   private setArea = (area: DSArea) => {
+    this.cleanupScrollListeners()
     this.reset()
     this._node = area
     handleElementPositionAttribute({
@@ -96,6 +102,7 @@ export default class Area<E extends DSInputElement> {
       this.PS.publish('Area:modified:pre', { item: this.HTMLNode })
       this.reset()
       this.PS.publish('Area:modified', { item: this.HTMLNode })
+      this.initPermanentScrollListener()
     })
   }
 
@@ -144,6 +151,7 @@ export default class Area<E extends DSInputElement> {
 
   public stop = () => {
     this._observers?.cleanup()
+    this.cleanupScrollListeners()
     this.reset()
   }
 
@@ -217,6 +225,49 @@ export default class Area<E extends DSInputElement> {
             }`
           : tempStyles.height,
     })
+  }
+
+  private initPermanentScrollListener = () => {
+    this._scrollHandler = () => {
+      if (this._scrollThrottleTimeout || this.DS.Selector.scrollSelector) return
+      this._scrollThrottleTimeout = window.setTimeout(() => {
+        this.updateRectOnScroll()
+        this._scrollThrottleTimeout = undefined
+      }, 100)
+    }
+
+    document.body.addEventListener('scroll', this._scrollHandler, {
+      passive: true,
+    })
+  }
+
+  private updateRectOnScroll = () => {
+    const currentScrollX = window.document.body?.scrollLeft
+    const currentScrollY = window.document.body?.scrollTop
+
+    if (
+      currentScrollX !== this._lastScrollX ||
+      currentScrollY !== this._lastScrollY
+    ) {
+      this._lastScrollX = currentScrollX
+      this._lastScrollY = currentScrollY
+
+      this._rect = undefined
+      this._computedStyle = undefined
+
+      this.PS.publish('Area:modified:pre', { item: this.HTMLNode })
+      this.PS.publish('Area:modified', { item: this.HTMLNode })
+    }
+  }
+
+  private cleanupScrollListeners = () => {
+    if (this._scrollThrottleTimeout) {
+      clearTimeout(this._scrollThrottleTimeout)
+      this._scrollThrottleTimeout = undefined
+    }
+    if (this._scrollHandler) {
+      document.body.removeEventListener('scroll', this._scrollHandler)
+    }
   }
 
   /** The element rect (caches result) (without scrollbar or borders) */

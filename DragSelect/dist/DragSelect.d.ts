@@ -595,6 +595,10 @@ declare class Area<E extends DSInputElement> {
     private _computedStyle?;
     private _computedBorder?;
     private _rect?;
+    private _scrollThrottleTimeout?;
+    private _scrollHandler?;
+    private _lastScrollX;
+    private _lastScrollY;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -612,6 +616,9 @@ declare class Area<E extends DSInputElement> {
     get computedPadding(): DSEdgesObj;
     /** The computed styles from the element (caches result) */
     private get computedStyle();
+    private initPermanentScrollListener;
+    private updateRectOnScroll;
+    private cleanupScrollListeners;
     /** The element rect (caches result) (without scrollbar or borders) */
     get rect(): DSBoundingRect;
     private get parentNodes();
