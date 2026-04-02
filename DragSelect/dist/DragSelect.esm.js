@@ -316,7 +316,6 @@ class Area {
     }
     initPermanentScrollListener = () => {
         this._scrollHandler = () => {
-            console.log(this.DS.Selector.scrollSelector);
             if (this._scrollThrottleTimeout || this.DS.Selector.scrollSelector)
                 return;
             this._scrollThrottleTimeout = window.setTimeout(() => {
