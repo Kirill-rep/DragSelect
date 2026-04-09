@@ -45,6 +45,7 @@ import {
   type DSInputElement,
   type Settings,
   type Vect2,
+  type DSDropZoneElementPatch,
   CustomStyles,
   CustomStyle,
   DraggableStyles,
@@ -425,6 +426,11 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
     coordinates?: Vect2
   ): DSDropZone<E> | undefined =>
     this.DropZones.getTarget({ coordinates })?.toObject()
+
+  /** Updates only element references of existing dropzones (matched by id) */
+  public updateDropZoneElements = (
+    updates: DSDropZoneElementPatch<E> | DSDropZoneElementPatch<E>[]
+  ) => this.DropZones.updateZoneElements(ensureArray(updates))
 
   /** Returns itemsDropped into zone by zone id */
   public getItemsDroppedByZoneId = (zoneId: string) =>

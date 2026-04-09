@@ -1,7 +1,12 @@
 import DragSelect from '../DragSelect'
 import DropZone from './DropZone'
 import PubSub, { DSCallback } from './PubSub'
-import { DSInputDropZone, DSInputElement, Vect2 } from '../types'
+import {
+  DSInputDropZone,
+  DSInputElement,
+  Vect2,
+  DSDropZoneElementPatch,
+} from '../types'
 import { DSSettings } from '../stores/SettingsStore'
 import { isCollision } from '../methods/isCollision'
 import { DSInteractionPublishEventData, InteractionEvent } from './Interaction'
@@ -219,5 +224,30 @@ export default class DropZones<E extends DSInputElement> {
 
     const elements = document.elementsFromPoint(x, y)
     return this._getZoneByElementsFromPoint(elements, { x, y })
+  }
+
+  public updateZoneElements = (updates: DSDropZoneElementPatch<E>[]) => {
+    if (!updates?.length || !this._zones?.length) return
+    const zoneIndexById = new Map(
+      this._zones.map((zone, index) => [zone.id, index])
+    )
+    updates.forEach(({ id, element }) => {
+      const currentZone = this._zoneById.get(id)
+      const zoneIndex = zoneIndexById.get(id)
+      if (!currentZone || zoneIndex === undefined) return
+      if (currentZone.element === element) return
+      const replacementZone = new DropZone({
+        DS: this.DS,
+        PS: this.PS,
+        id: currentZone.id,
+        element,
+        droppables: currentZone.droppables,
+      })
+      currentZone.destroy()
+      this._zones![zoneIndex] = replacementZone
+      this._zoneById.set(id, replacementZone)
+      this._zoneByElement.delete(currentZone.element)
+      this._zoneByElement.set(element, replacementZone)
+    })
   }
 }

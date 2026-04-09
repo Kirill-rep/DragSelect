@@ -210,3 +210,8 @@ export type DSDragKeys = {
   left: Array<string>
   right: Array<string>
 }
+
+export type DSDropZoneElementPatch<E extends DSInputElement> = {
+  id: string
+  element: E
+}

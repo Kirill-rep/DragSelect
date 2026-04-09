@@ -125,7 +125,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
             currparentEl.nextElementSibling?.classList.contains('selection')
         } else {
           const secondParent =
-            currparentEl.parentElement?.nextElementSibling?.querySelectorAll(
+            currparentEl.parentElement?.parentElement?.nextElementSibling?.querySelectorAll(
               '.selection'
             )
           isAdjacent = !!secondParent?.length
@@ -146,7 +146,7 @@ export default class SelectedSet<E extends DSInputElement> extends Set<E> {
   }
 
   private _updateSelectedClasses(elementsArr: E[], element: E, del?: boolean) {
-    const tr = element.parentElement?.closest('tr')
+    const tr = element.parentElement?.closest('.isPasswordsList')
     let elementTd: E | HTMLTableCellElement = element
     let elementsArrTds: E[] | HTMLTableCellElement[] | (E | HTMLElement)[] =
       elementsArr

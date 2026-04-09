@@ -1162,6 +1162,31 @@
             const elements = document.elementsFromPoint(x, y);
             return this._getZoneByElementsFromPoint(elements, { x, y });
         };
+        updateZoneElements = (updates) => {
+            if (!updates?.length || !this._zones?.length)
+                return;
+            const zoneIndexById = new Map(this._zones.map((zone, index) => [zone.id, index]));
+            updates.forEach(({ id, element }) => {
+                const currentZone = this._zoneById.get(id);
+                const zoneIndex = zoneIndexById.get(id);
+                if (!currentZone || zoneIndex === undefined)
+                    return;
+                if (currentZone.element === element)
+                    return;
+                const replacementZone = new DropZone({
+                    DS: this.DS,
+                    PS: this.PS,
+                    id: currentZone.id,
+                    element,
+                    droppables: currentZone.droppables,
+                });
+                currentZone.destroy();
+                this._zones[zoneIndex] = replacementZone;
+                this._zoneById.set(id, replacementZone);
+                this._zoneByElement.delete(currentZone.element);
+                this._zoneByElement.set(element, replacementZone);
+            });
+        };
     }
 
     /** Logic when an element is selected */
@@ -2110,7 +2135,7 @@
                             currparentEl.nextElementSibling?.classList.contains('selection');
                     }
                     else {
-                        const secondParent = currparentEl.parentElement?.nextElementSibling?.querySelectorAll('.selection');
+                        const secondParent = currparentEl.parentElement?.parentElement?.nextElementSibling?.querySelectorAll('.selection');
                         isAdjacent = !!secondParent?.length;
                     }
                 }
@@ -2127,7 +2152,7 @@
             });
         }
         _updateSelectedClasses(elementsArr, element, del) {
-            const tr = element.parentElement?.closest('tr');
+            const tr = element.parentElement?.closest('.isPasswordsList');
             let elementTd = element;
             let elementsArrTds = elementsArr;
             if (tr) {
@@ -3524,6 +3549,8 @@
         isDragging = () => this.Interaction.isDragging;
         /** Returns first DropsZone under coordinates, if no coordinated provided current pointer coordinates are used */
         getZoneByCoordinates = (coordinates) => this.DropZones.getTarget({ coordinates })?.toObject();
+        /** Updates only element references of existing dropzones (matched by id) */
+        updateDropZoneElements = (updates) => this.DropZones.updateZoneElements(ensureArray(updates));
         /** Returns itemsDropped into zone by zone id */
         getItemsDroppedByZoneId = (zoneId) => this.DropZones.getItemsDroppedById(zoneId);
         /**

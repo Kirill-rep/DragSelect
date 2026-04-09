@@ -500,6 +500,10 @@ type DSDragKeys = {
     left: Array<string>;
     right: Array<string>;
 };
+type DSDropZoneElementPatch<E extends DSInputElement> = {
+    id: string;
+    element: E;
+};
 
 type DSSelectedPublishEventNames = 'Selected:added:pre' | 'Selected:added' | 'Selected:removed' | 'Selected:removed:pre';
 type DSSelectedPublishEventData<E extends DSInputElement> = {
@@ -698,6 +702,7 @@ declare class DropZones<E extends DSInputElement> {
         isDraggingKeyboard?: boolean | undefined;
         event?: InteractionEvent | KeyboardEvent | undefined;
     }) => DropZone<E> | undefined;
+    updateZoneElements: (updates: DSDropZoneElementPatch<E>[]) => void;
 }
 
 declare class ScrollStore<E extends DSInputElement> {
@@ -997,6 +1002,8 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
     isDragging: () => boolean;
     /** Returns first DropsZone under coordinates, if no coordinated provided current pointer coordinates are used */
     getZoneByCoordinates: (coordinates?: Vect2) => DSDropZone<E> | undefined;
+    /** Updates only element references of existing dropzones (matched by id) */
+    updateDropZoneElements: (updates: DSDropZoneElementPatch<E> | DSDropZoneElementPatch<E>[]) => void;
     /** Returns itemsDropped into zone by zone id */
     getItemsDroppedByZoneId: (zoneId: string) => void | E[];
     /**
@@ -1008,4 +1015,4 @@ declare class DragSelect<E extends DSInputElement = DSInputElement> {
 
 type DSPubCallback<T extends keyof DSPublicPublish<E>, E extends DSInputElement = DSInputElement> = DSCallback<DSPublishMappings<E>[T]>;
 
-export { type AreaSize, type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type DraggableStyles, type Settings, type Vect2, DragSelect as default };
+export { type AreaSize, type CustomStyle, type CustomStyles, type DSArea, type DSBoundingRect, type DSBoundingRectBase, type DSCallbackObject, type DSDragKeys, type DSDropZoneElementPatch, type DSEdges, type DSEdgesObj, type DSElementPos, type DSEvent, type DSInputDropZone, type DSInputElement, type DSInternalEventName, type DSMultiSelectKeys, type DSPubCallback, type DSSelectorArea, type DraggableStyles, type Settings, type Vect2, DragSelect as default };
