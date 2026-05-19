@@ -25,6 +25,8 @@ export default class SelectorArea<E extends DSInputElement> {
   private Settings: DSSettings<E>
   public HTMLNode: HTMLElement
   public HTMLNodeSize?: AreaSize
+  private _permanentResizeObserver?: ResizeObserver
+  private _resizeTimeout?: ReturnType<typeof setTimeout>
 
   constructor({ DS, PS }: { DS: DragSelect<E>; PS: PubSub<E> }) {
     this.DS = DS
@@ -41,6 +43,10 @@ export default class SelectorArea<E extends DSInputElement> {
     // this.PS.subscribe('Interaction:update', this.updatePos)
     // this.PS.subscribe('Interaction:scroll:pre', this.updatePos)
     this.PS.subscribe('Interaction:init', this.init)
+    this._initPermanentResizeObserver()
+    this.PS.subscribe('Settings:updated:area', () => {
+      this._initPermanentResizeObserver()
+    })
     this.PS.subscribe('Interaction:start', ({ isDraggingKeyboard }) =>
       this.startAutoScroll({ isDraggingKeyboard })
     )
@@ -90,6 +96,19 @@ export default class SelectorArea<E extends DSInputElement> {
     }
   }
 
+  private _initPermanentResizeObserver = () => {
+    this._permanentResizeObserver?.disconnect()
+    const areaNode = this.DS.Area.HTMLNode
+    const observableEl =
+      areaNode instanceof Document ? areaNode.documentElement : areaNode
+    if (!observableEl) return
+    this._permanentResizeObserver = new ResizeObserver(() => {
+      clearTimeout(this._resizeTimeout)
+      this._resizeTimeout = setTimeout(() => this.updatePos(), 60)
+    })
+    this._permanentResizeObserver.observe(observableEl as Element)
+  }
+
   /** Updates the selectorAreas positions to match the areas */
   public updatePos = () => {
     if (!this.DS?.Area || !this.HTMLNode) return
@@ -119,6 +138,9 @@ export default class SelectorArea<E extends DSInputElement> {
 
   public stop = (remove: boolean) => {
     this.stopAutoScroll()
+    this._permanentResizeObserver?.disconnect()
+    this._permanentResizeObserver = undefined
+    clearTimeout(this._resizeTimeout)
     if (remove) this.applyElements('remove')
   }
 

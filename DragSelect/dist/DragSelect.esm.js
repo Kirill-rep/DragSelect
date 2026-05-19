@@ -2847,6 +2847,8 @@ class SelectorArea {
     Settings;
     HTMLNode;
     HTMLNodeSize;
+    _permanentResizeObserver;
+    _resizeTimeout;
     constructor({ DS, PS }) {
         this.DS = DS;
         this.PS = PS;
@@ -2862,6 +2864,10 @@ class SelectorArea {
         // this.PS.subscribe('Interaction:update', this.updatePos)
         // this.PS.subscribe('Interaction:scroll:pre', this.updatePos)
         this.PS.subscribe('Interaction:init', this.init);
+        this._initPermanentResizeObserver();
+        this.PS.subscribe('Settings:updated:area', () => {
+            this._initPermanentResizeObserver();
+        });
         this.PS.subscribe('Interaction:start', ({ isDraggingKeyboard }) => this.startAutoScroll({ isDraggingKeyboard }));
         this.PS.subscribe('Interaction:end', () => {
             this.updatePos();
@@ -2898,6 +2904,18 @@ class SelectorArea {
             height: Math.min(containerRect.height, selectionRect.height),
         };
     };
+    _initPermanentResizeObserver = () => {
+        this._permanentResizeObserver?.disconnect();
+        const areaNode = this.DS.Area.HTMLNode;
+        const observableEl = areaNode instanceof Document ? areaNode.documentElement : areaNode;
+        if (!observableEl)
+            return;
+        this._permanentResizeObserver = new ResizeObserver(() => {
+            clearTimeout(this._resizeTimeout);
+            this._resizeTimeout = setTimeout(() => this.updatePos(), 60);
+        });
+        this._permanentResizeObserver.observe(observableEl);
+    };
     /** Updates the selectorAreas positions to match the areas */
     updatePos = () => {
         if (!this.DS?.Area || !this.HTMLNode)
@@ -2929,6 +2947,9 @@ class SelectorArea {
     };
     stop = (remove) => {
         this.stopAutoScroll();
+        this._permanentResizeObserver?.disconnect();
+        this._permanentResizeObserver = undefined;
+        clearTimeout(this._resizeTimeout);
         if (remove)
             this.applyElements('remove');
     };

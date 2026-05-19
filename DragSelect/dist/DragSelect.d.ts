@@ -818,6 +818,8 @@ declare class SelectorArea<E extends DSInputElement> {
     private Settings;
     HTMLNode: HTMLElement;
     HTMLNodeSize?: AreaSize;
+    private _permanentResizeObserver?;
+    private _resizeTimeout?;
     constructor({ DS, PS }: {
         DS: DragSelect<E>;
         PS: PubSub<E>;
@@ -826,6 +828,7 @@ declare class SelectorArea<E extends DSInputElement> {
     /**  Adding / Removing elements to document  */
     private applyElements;
     private clampSelectionArea;
+    private _initPermanentResizeObserver;
     /** Updates the selectorAreas positions to match the areas */
     updatePos: () => void;
     stop: (remove: boolean) => void;
