@@ -1167,6 +1167,8 @@ class DropZones {
                 return;
             if (currentZone.element === element)
                 return;
+            if (document.contains(currentZone.element))
+                return;
             const replacementZone = new DropZone({
                 DS: this.DS,
                 PS: this.PS,

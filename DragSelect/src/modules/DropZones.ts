@@ -236,6 +236,7 @@ export default class DropZones<E extends DSInputElement> {
       const zoneIndex = zoneIndexById.get(id)
       if (!currentZone || zoneIndex === undefined) return
       if (currentZone.element === element) return
+      if (document.contains(currentZone.element)) return
       const replacementZone = new DropZone({
         DS: this.DS,
         PS: this.PS,
