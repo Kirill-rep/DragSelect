@@ -358,11 +358,15 @@ export default class Interaction<E extends DSInputElement> {
     document.removeEventListener('touchend', this.reset)
   }
 
-  private setBodyScrollListener = () => {
-    document.body?.addEventListener('scroll', this.startScroll)
+  private setBodyScrollListener = (
+    container = this.DS.stores.SettingsStore.s.areaContainerSelector
+  ) => {
+    container?.addEventListener('scroll', this.startScroll)
   }
 
-  private removeBodyScrollListener = () => {
-    document.body?.removeEventListener('scroll', this.startScroll)
+  private removeBodyScrollListener = (
+    container = this.DS.stores.SettingsStore.s.areaContainerSelector
+  ) => {
+    container?.removeEventListener('scroll', this.startScroll)
   }
 }

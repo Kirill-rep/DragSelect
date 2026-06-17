@@ -719,6 +719,7 @@ declare class ScrollStore<E extends DSInputElement> {
         PS: PubSub<E>;
     });
     private init;
+    private get container();
     private addListeners;
     private removeListeners;
     private start;
@@ -767,10 +768,12 @@ declare class Selector<E extends DSInputElement> {
     /** Moves the selection to the correct place */
     private update;
     private updateWithScroll;
+    private clipToContainer;
     private updateSelections;
     private captureClick;
     private scroll;
     get rect(): DSBoundingRect | DOMRect;
+    private get scrollContainer();
     private startAutoScroll;
     private stopAutoScroll;
     private checkForAutoScroll;

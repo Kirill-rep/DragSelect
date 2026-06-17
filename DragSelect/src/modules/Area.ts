@@ -236,14 +236,14 @@ export default class Area<E extends DSInputElement> {
       }, 100)
     }
 
-    document.body.addEventListener('scroll', this._scrollHandler, {
+    this.containerSelector?.addEventListener('scroll', this._scrollHandler, {
       passive: true,
     })
   }
 
   private updateRectOnScroll = () => {
-    const currentScrollX = window.document.body?.scrollLeft
-    const currentScrollY = window.document.body?.scrollTop
+    const currentScrollX = this.containerSelector?.scrollLeft ?? 0
+    const currentScrollY = this.containerSelector?.scrollTop ?? 0
 
     if (
       currentScrollX !== this._lastScrollX ||
@@ -266,7 +266,7 @@ export default class Area<E extends DSInputElement> {
       this._scrollThrottleTimeout = undefined
     }
     if (this._scrollHandler) {
-      document.body.removeEventListener('scroll', this._scrollHandler)
+      this.containerSelector?.removeEventListener('scroll', this._scrollHandler)
     }
   }
 

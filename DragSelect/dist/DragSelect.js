@@ -128,7 +128,7 @@
             bottom: rect.bottom,
             right: rect.right,
             width: (area.clientWidth || rect.width) * zoom,
-            height: (areaSelectorHeight || area.clientHeight || rect.height) * zoom,
+            height: (area.scrollHeight || areaSelectorHeight || rect.height) * zoom,
         };
     };
 
@@ -329,13 +329,13 @@
                     this._scrollThrottleTimeout = undefined;
                 }, 100);
             };
-            document.body.addEventListener('scroll', this._scrollHandler, {
+            this.containerSelector?.addEventListener('scroll', this._scrollHandler, {
                 passive: true,
             });
         };
         updateRectOnScroll = () => {
-            const currentScrollX = window.document.body?.scrollLeft;
-            const currentScrollY = window.document.body?.scrollTop;
+            const currentScrollX = this.containerSelector?.scrollLeft ?? 0;
+            const currentScrollY = this.containerSelector?.scrollTop ?? 0;
             if (currentScrollX !== this._lastScrollX ||
                 currentScrollY !== this._lastScrollY) {
                 this._lastScrollX = currentScrollX;
@@ -352,7 +352,7 @@
                 this._scrollThrottleTimeout = undefined;
             }
             if (this._scrollHandler) {
-                document.body.removeEventListener('scroll', this._scrollHandler);
+                this.containerSelector?.removeEventListener('scroll', this._scrollHandler);
             }
         };
         /** The element rect (caches result) (without scrollbar or borders) */
@@ -1471,11 +1471,11 @@
                 document.removeEventListener('mouseup', this.reset);
             document.removeEventListener('touchend', this.reset);
         };
-        setBodyScrollListener = () => {
-            document.body?.addEventListener('scroll', this.startScroll);
+        setBodyScrollListener = (container = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
+            container?.addEventListener('scroll', this.startScroll);
         };
-        removeBodyScrollListener = () => {
-            document.body?.removeEventListener('scroll', this.startScroll);
+        removeBodyScrollListener = (container = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
+            container?.removeEventListener('scroll', this.startScroll);
         };
     }
 
@@ -1846,14 +1846,18 @@
             this.PS.subscribe('Interaction:end', () => this.reset());
         }
         init = () => this.addListeners();
-        addListeners = () => document.body?.addEventListener('scroll', this.update);
-        removeListeners = () => document.body?.removeEventListener('scroll', this.update);
+        get container() {
+            return (this.DS.stores.SettingsStore.s.areaContainerSelector ||
+                this.DS.Area.HTMLNode);
+        }
+        addListeners = () => this.container?.addEventListener('scroll', this.update);
+        removeListeners = () => this.container?.removeEventListener('scroll', this.update);
         start = () => {
-            this._currentVal = this._initialVal = getCurrentScroll(this.DS.Area.HTMLNode);
+            this._currentVal = this._initialVal = getCurrentScroll(this.container);
             this._currentValWin = this._initialValWin = getCurrentWindowScroll();
         };
         update = () => {
-            this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode);
+            this._currentVal = getCurrentScroll(this.container);
             this._currentValWin = getCurrentWindowScroll();
         };
         stop = () => {
@@ -1899,7 +1903,7 @@
         }
         get currentVal() {
             if (!this._currentVal)
-                this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode);
+                this._currentVal = getCurrentScroll(this.container);
             return this._currentVal;
         }
         get currentValWin() {
@@ -2457,6 +2461,7 @@
             this.HTMLNode.style.width = '0';
             this.HTMLNode.style.height = '0';
             this.HTMLNode.style.display = 'none';
+            this.HTMLNode.style.clipPath = '';
             this.scrollSelector = false;
             this._keyPress = false;
             this.stopAutoScroll();
@@ -2492,11 +2497,11 @@
                 y: initY,
             };
             const pointerPos = {
-                x: x + window.scrollX,
-                y: y + window.scrollY,
+                x,
+                y,
             };
             const pos = getSelectorPosition({
-                scrollAmount: ScrollStore.scrollAmountWin,
+                scrollAmount: ScrollStore.scrollAmount,
                 initialPointerPos: initPointerPos,
                 pointerPos: pointerPos,
                 containerSize: this.ContainerSize,
@@ -2516,6 +2521,7 @@
                     pos.height = 0;
                 updateElementStylePos(this.HTMLNode, pos);
             }
+            this.clipToContainer();
             this._rect = undefined;
             this.checkForAutoScroll({ x, y });
         };
@@ -2542,19 +2548,35 @@
                 y: initY,
             };
             const pointerPos = {
-                x: x + window.scrollX,
-                y: y + window.scrollY,
+                x,
+                y,
             };
             const pos = getSelectorPosition({
-                scrollAmount: ScrollStore.scrollAmountWin,
+                scrollAmount: ScrollStore.scrollAmount,
                 initialPointerPos: initPointerPos,
                 pointerPos: pointerPos,
                 containerSize: this.ContainerSize,
             });
             if (pos)
                 updateElementStylePos(this.HTMLNode, pos);
+            this.clipToContainer();
             this.updateSelections();
             this._rect = undefined;
+        };
+        clipToContainer = () => {
+            const container = this.Settings.areaContainerSelector;
+            if (!container) {
+                if (this.HTMLNode.style.clipPath)
+                    this.HTMLNode.style.clipPath = '';
+                return;
+            }
+            const rect = container.getBoundingClientRect();
+            const selectorRect = this.HTMLNode.getBoundingClientRect();
+            const clipTop = Math.max(0, rect.top - selectorRect.top);
+            const clipBottom = Math.max(0, selectorRect.bottom - rect.bottom);
+            const clipLeft = Math.max(0, rect.left - selectorRect.left);
+            const clipRight = Math.max(0, selectorRect.right - rect.right);
+            this.HTMLNode.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`;
         };
         updateSelections() {
             setTimeout(() => {
@@ -2627,18 +2649,19 @@
                 return this._rect;
             return (this._rect = this.HTMLNode.getBoundingClientRect());
         }
+        get scrollContainer() {
+            return this.DS.stores.SettingsStore.s.areaContainerSelector;
+        }
         startAutoScroll = (direction) => {
             if (this.autoScroll)
                 return;
             this.autoScroll = true;
             // this.stopAutoScroll()
             const scroll = () => {
-                if (direction === 'up') {
-                    document.body.scrollBy(0, -this.scrollSpeed);
-                }
-                else {
-                    document.body.scrollBy(0, this.scrollSpeed);
-                }
+                const container = this.scrollContainer;
+                if (!container)
+                    return;
+                container.scrollBy(0, direction === 'up' ? -this.scrollSpeed : this.scrollSpeed);
             };
             this.scrollIntervalId = setInterval(scroll, this.scrollInterval);
         };
@@ -2650,14 +2673,17 @@
             this.scrollSpeed = 0;
         };
         checkForAutoScroll = (pointerPos) => {
-            const { innerHeight } = window;
-            const distanceToTop = pointerPos.y;
-            const distanceToBottom = innerHeight - pointerPos.y;
-            if (pointerPos.y < this.edgeThreshold) {
+            const container = this.scrollContainer;
+            if (!container)
+                return;
+            const rect = container.getBoundingClientRect();
+            const distanceToTop = pointerPos.y - rect.top;
+            const distanceToBottom = rect.bottom - pointerPos.y;
+            if (distanceToTop < this.edgeThreshold) {
                 this.scrollSpeed = this.calculateScrollSpeed(distanceToTop);
                 this.startAutoScroll('up');
             }
-            else if (pointerPos.y > innerHeight - this.edgeThreshold) {
+            else if (distanceToBottom < this.edgeThreshold) {
                 this.scrollSpeed = this.calculateScrollSpeed(distanceToBottom);
                 this.startAutoScroll('down');
             }
@@ -2932,11 +2958,9 @@
             const rect = this.DS.Area.rect;
             const border = this.DS.Area.computedBorder;
             const { style } = this.HTMLNode;
-            const scrollX = window.scrollX;
-            const scrollY = window.scrollY;
             this.HTMLNodeSize = {
-                top: rect.top + border.top + scrollY,
-                left: rect.left + border.left + scrollX,
+                top: rect.top + border.top,
+                left: rect.left + border.left,
                 width: rect.width,
                 height: rect.height,
             };

@@ -93,6 +93,7 @@ export default class Selector<E extends DSInputElement> {
     this.HTMLNode.style.width = '0'
     this.HTMLNode.style.height = '0'
     this.HTMLNode.style.display = 'none'
+    this.HTMLNode.style.clipPath = ''
     this.scrollSelector = false
     this._keyPress = false
     this.stopAutoScroll()
@@ -135,12 +136,12 @@ export default class Selector<E extends DSInputElement> {
       y: initY,
     }
     const pointerPos = {
-      x: x + window.scrollX,
-      y: y + window.scrollY,
+      x,
+      y,
     }
 
     const pos = getSelectorPosition({
-      scrollAmount: ScrollStore.scrollAmountWin,
+      scrollAmount: ScrollStore.scrollAmount,
       initialPointerPos: initPointerPos,
       pointerPos: pointerPos,
       containerSize: this.ContainerSize,
@@ -157,6 +158,8 @@ export default class Selector<E extends DSInputElement> {
 
       updateElementStylePos(this.HTMLNode, pos)
     }
+
+    this.clipToContainer()
 
     this._rect = undefined
 
@@ -191,20 +194,39 @@ export default class Selector<E extends DSInputElement> {
       y: initY,
     }
     const pointerPos = {
-      x: x + window.scrollX,
-      y: y + window.scrollY,
+      x,
+      y,
     }
 
     const pos = getSelectorPosition({
-      scrollAmount: ScrollStore.scrollAmountWin,
+      scrollAmount: ScrollStore.scrollAmount,
       initialPointerPos: initPointerPos,
       pointerPos: pointerPos,
       containerSize: this.ContainerSize,
     })
 
     if (pos) updateElementStylePos(this.HTMLNode, pos)
+    this.clipToContainer()
     this.updateSelections()
     this._rect = undefined
+  }
+
+  private clipToContainer = () => {
+    const container = this.Settings.areaContainerSelector
+    if (!container) {
+      if (this.HTMLNode.style.clipPath) this.HTMLNode.style.clipPath = ''
+      return
+    }
+
+    const rect = container.getBoundingClientRect()
+    const selectorRect = this.HTMLNode.getBoundingClientRect()
+
+    const clipTop = Math.max(0, rect.top - selectorRect.top)
+    const clipBottom = Math.max(0, selectorRect.bottom - rect.bottom)
+    const clipLeft = Math.max(0, rect.left - selectorRect.left)
+    const clipRight = Math.max(0, selectorRect.right - rect.right)
+
+    this.HTMLNode.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px)`
   }
 
   private updateSelections() {
@@ -287,17 +309,22 @@ export default class Selector<E extends DSInputElement> {
     return (this._rect = this.HTMLNode.getBoundingClientRect())
   }
 
+  private get scrollContainer() {
+    return this.DS.stores.SettingsStore.s.areaContainerSelector
+  }
+
   private startAutoScroll = (direction: 'up' | 'down') => {
     if (this.autoScroll) return
     this.autoScroll = true
     // this.stopAutoScroll()
 
     const scroll = () => {
-      if (direction === 'up') {
-        document.body.scrollBy(0, -this.scrollSpeed)
-      } else {
-        document.body.scrollBy(0, this.scrollSpeed)
-      }
+      const container = this.scrollContainer
+      if (!container) return
+      container.scrollBy(
+        0,
+        direction === 'up' ? -this.scrollSpeed : this.scrollSpeed
+      )
     }
 
     this.scrollIntervalId = setInterval(
@@ -315,15 +342,17 @@ export default class Selector<E extends DSInputElement> {
   }
 
   private checkForAutoScroll = (pointerPos: { x: number; y: number }) => {
-    const { innerHeight } = window
+    const container = this.scrollContainer
+    if (!container) return
+    const rect = container.getBoundingClientRect()
 
-    const distanceToTop = pointerPos.y
-    const distanceToBottom = innerHeight - pointerPos.y
+    const distanceToTop = pointerPos.y - rect.top
+    const distanceToBottom = rect.bottom - pointerPos.y
 
-    if (pointerPos.y < this.edgeThreshold) {
+    if (distanceToTop < this.edgeThreshold) {
       this.scrollSpeed = this.calculateScrollSpeed(distanceToTop)
       this.startAutoScroll('up')
-    } else if (pointerPos.y > innerHeight - this.edgeThreshold) {
+    } else if (distanceToBottom < this.edgeThreshold) {
       this.scrollSpeed = this.calculateScrollSpeed(distanceToBottom)
       this.startAutoScroll('down')
     } else {

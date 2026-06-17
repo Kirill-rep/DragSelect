@@ -1,6 +1,6 @@
 import DragSelect from '../DragSelect'
 import PubSub from '../modules/PubSub'
-import { DSInputElement, Settings, Vect2 } from '../types'
+import { DSArea, DSInputElement, Settings, Vect2 } from '../types'
 import { calcVect, num2vect } from '../methods/vect2'
 import { canScroll } from '../methods/canScroll'
 import { getCurrentScroll } from '../methods/getCurrentScroll'
@@ -31,20 +31,25 @@ export default class ScrollStore<E extends DSInputElement> {
 
   private init = () => this.addListeners()
 
-  private addListeners = () =>
-    document.body?.addEventListener('scroll', this.update)
-  private removeListeners = () =>
-    document.body?.removeEventListener('scroll', this.update)
-
-  private start = () => {
-    this._currentVal = this._initialVal = getCurrentScroll(
+  private get container(): DSArea {
+    return (
+      (this.DS.stores.SettingsStore.s.areaContainerSelector as HTMLElement) ||
       this.DS.Area.HTMLNode
     )
+  }
+
+  private addListeners = () =>
+    this.container?.addEventListener('scroll', this.update)
+  private removeListeners = () =>
+    this.container?.removeEventListener('scroll', this.update)
+
+  private start = () => {
+    this._currentVal = this._initialVal = getCurrentScroll(this.container)
     this._currentValWin = this._initialValWin = getCurrentWindowScroll()
   }
 
   private update = () => {
-    this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode)
+    this._currentVal = getCurrentScroll(this.container)
     this._currentValWin = getCurrentWindowScroll()
   }
 
@@ -100,8 +105,7 @@ export default class ScrollStore<E extends DSInputElement> {
   }
 
   public get currentVal() {
-    if (!this._currentVal)
-      this._currentVal = getCurrentScroll(this.DS.Area.HTMLNode)
+    if (!this._currentVal) this._currentVal = getCurrentScroll(this.container)
     return this._currentVal
   }
   public get currentValWin() {

@@ -34,6 +34,6 @@ export const getAreaRect = (
     bottom: rect.bottom,
     right: rect.right,
     width: (area.clientWidth || rect.width) * zoom,
-    height: (areaSelectorHeight || area.clientHeight || rect.height) * zoom,
+    height: (area.scrollHeight || areaSelectorHeight || rect.height) * zoom,
   }
 }

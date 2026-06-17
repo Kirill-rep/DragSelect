@@ -116,12 +116,10 @@ export default class SelectorArea<E extends DSInputElement> {
     const rect = this.DS.Area.rect
     const border = this.DS.Area.computedBorder
     const { style } = this.HTMLNode
-    const scrollX = window.scrollX
-    const scrollY = window.scrollY
 
     this.HTMLNodeSize = {
-      top: rect.top + border.top + scrollY,
-      left: rect.left + border.left + scrollX,
+      top: rect.top + border.top,
+      left: rect.left + border.left,
       width: rect.width,
       height: rect.height,
     }
