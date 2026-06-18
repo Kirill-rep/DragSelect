@@ -122,13 +122,20 @@
         const areaSelectorHeight = containerSelector && containerOffset
             ? containerSelector?.clientHeight - containerOffset?.clientHeight - 3
             : null;
+        const height = Math.max(area.scrollHeight || 0, areaSelectorHeight || 0) || rect.height;
+        const areaSelectorWidth = containerSelector
+            ? containerSelector.clientWidth - 3
+            : null;
+        const width = areaSelectorWidth != null
+            ? Math.min(area.clientWidth || areaSelectorWidth, areaSelectorWidth)
+            : area.clientWidth || rect.width;
         return {
             top: rect.top,
             left: rect.left,
             bottom: rect.bottom,
             right: rect.right,
-            width: (area.clientWidth || rect.width) * zoom,
-            height: (area.scrollHeight || areaSelectorHeight || rect.height) * zoom,
+            width: width * zoom,
+            height: height * zoom,
         };
     };
 
