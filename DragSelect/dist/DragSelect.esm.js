@@ -676,6 +676,9 @@ class Drag {
         this._elements.forEach((el) => {
             el.classList.remove('isDragging');
         });
+        this.DS.SelectedSet.elements
+            .filter((el) => !el.isConnected)
+            .forEach((el) => this.DS.SelectedSet.delete(el));
         this._readyDropZone?.classList.remove('ds-dropzone-ready-drop');
         this._elements = [];
         this._draggingElement?.remove();
@@ -690,6 +693,30 @@ class Drag {
             isDraggingKeyboard ||
             this.DS.continue)
             return;
+        if (this._elements.some((el) => !el.isConnected)) {
+            this._elements = this._elements
+                .map((el) => {
+                if (el.isConnected)
+                    return el;
+                const replacement = el.id
+                    ? document.getElementById(el.id)
+                    : null;
+                if (replacement && replacement.isConnected) {
+                    this.DS.SelectedSet.delete(el);
+                    this.DS.SelectedSet.add(replacement, true);
+                    replacement.classList.add('isDragging');
+                    return replacement;
+                }
+                el.classList.remove('isDragging');
+                this.DS.SelectedSet.delete(el);
+                return null;
+            })
+                .filter((el) => el !== null);
+            if (!this._elements.length) {
+                this.stop();
+                return;
+            }
+        }
         if (!document.querySelector('.drag-ghost') && this._draggingElement) {
             if (this.startDrag) {
                 this.startDrag = false;
