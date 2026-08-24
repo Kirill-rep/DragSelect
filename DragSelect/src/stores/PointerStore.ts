@@ -48,7 +48,8 @@ export default class PointerStore<E extends DSInputElement> {
     // else
     document.addEventListener('mousemove', this.update)
 
-    document.addEventListener('touchmove', this.update, { passive: false })
+    if (this.settings.touchInteractions)
+      document.addEventListener('touchmove', this.update, { passive: false })
   }
 
   public start(event?: DSEvent) {

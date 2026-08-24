@@ -1265,6 +1265,16 @@ const getShiftSelectedElements = (el, selectedElements, arrSelectableEl) => {
     return arrSelectableEl.slice(fromIndex, toIndex + 1);
 };
 
+const isTouchInteraction = (event) => {
+    if (!event)
+        return false;
+    if ('touches' in event || 'changedTouches' in event)
+        return true;
+    if ('pointerType' in event && event.pointerType === 'touch')
+        return true;
+    return false;
+};
+
 class Interaction {
     isInteracting;
     isDragging = false;
@@ -1313,6 +1323,8 @@ class Interaction {
             event.clientY === 0 &&
             event.detail === 0 &&
             event.target;
+        if (!this.Settings.touchInteractions && isTouchInteraction(event))
+            return false;
         if (forced)
             return true;
         if (('button' in event && event.button === 2) || // right-clicks
@@ -1330,10 +1342,10 @@ class Interaction {
     _start = (event) => {
         if (event.target.closest('.ds-theader'))
             return;
-        if (event.type === 'touchstart')
-            event.preventDefault(); // Call preventDefault() to prevent double click issue, see https://github.com/ThibaultJanBeyer/DragSelect/pull/29 & https://developer.mozilla.org/vi/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent
         if (!this._canInteract(event))
             return;
+        if (event.type === 'touchstart')
+            event.preventDefault(); // Call preventDefault() to prevent double click issue, see https://github.com/ThibaultJanBeyer/DragSelect/pull/29 & https://developer.mozilla.org/vi/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent
         this.isInteracting = true;
         this.isDragging = this.isDragEvent(event);
         if ('clientX' in event && 'clientY' in event) {
@@ -1465,9 +1477,10 @@ class Interaction {
         //   })
         else
             area.addEventListener('mousedown', this.start);
-        area.addEventListener('touchstart', this.start, {
-            passive: false,
-        });
+        if (this.Settings.touchInteractions)
+            area.addEventListener('touchstart', this.start, {
+                passive: false,
+            });
     };
     removeAreaEventListeners = (area = this.DS.stores.SettingsStore.s.areaContainerSelector) => {
         if (!area)
@@ -1633,7 +1646,8 @@ class PointerStore {
         //   document.addEventListener('pointermove', this.update, { passive: false })
         // else
         document.addEventListener('mousemove', this.update);
-        document.addEventListener('touchmove', this.update, { passive: false });
+        if (this.settings.touchInteractions)
+            document.addEventListener('touchmove', this.update, { passive: false });
     };
     start(event) {
         if (!event)
@@ -1990,7 +2004,10 @@ class SelectableSet extends Set {
         //   })
         // else
         element.addEventListener('mousedown', this._onPointer);
-        element.addEventListener('touchstart', this._onPointer, { passive: false });
+        if (this.Settings.touchInteractions)
+            element.addEventListener('touchstart', this._onPointer, {
+                passive: false,
+            });
         if (this.Settings.draggability && !this.Settings.useTransform)
             handleElementPositionAttribute({
                 computedStyle: window.getComputedStyle(element),
@@ -3175,6 +3192,7 @@ const hydrateSettings = (settings, withFallback) => ({
     ...hydrateHelper('dropInsideThreshold', settings.dropInsideThreshold, withFallback, 1),
     ...hydrateHelper('dropTargetThreshold', settings.dropTargetThreshold, withFallback, 0),
     ...hydrateHelper('usePointerEvents', settings.usePointerEvents, withFallback, false),
+    ...hydrateHelper('touchInteractions', settings.touchInteractions, withFallback, false),
     ...hydrateHelper('hoverClass', settings.hoverClass, withFallback, 'ds-hover'),
     ...hydrateHelper('selectableClass', settings.selectableClass, withFallback, 'ds-selectable'),
     ...hydrateHelper('selectedClass', settings.selectedClass, withFallback, 'ds-selected'),
@@ -3336,6 +3354,19 @@ const publish = ({ sub_pub, data, DS, }) => {
     }
 };
 
+const isTouchDevice = () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined')
+        return false;
+    const userAgent = navigator.userAgent || '';
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(userAgent))
+        return true;
+    if (/Macintosh|Mac OS X/i.test(userAgent) && navigator.maxTouchPoints > 1)
+        return true;
+    if (window.matchMedia?.('(any-pointer: fine)').matches)
+        return false;
+    return window.matchMedia?.('(pointer: coarse)').matches ?? false;
+};
+
 /*
     ____                   _____      __          __
    / __ \_________ _____ _/ ___/___  / /__  _____/ /_
@@ -3429,8 +3460,10 @@ class DragSelect {
     publish = (eventName, data) => this.PubSub.publish(eventName, data);
     /** Initializes the functionality. Automatically triggered when created. Also, reset the functionality after a teardown */
     start = () => {
-        if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+        if (isTouchDevice()) {
+            this.stopped = true;
             return;
+        }
         this.stopped = false;
         this.Interaction.init();
     };

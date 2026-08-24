@@ -6,6 +6,7 @@ import { handleSelection } from '../methods/handleSelection'
 import SelectedSet from './SelectedSet'
 import KeyStore from '../stores/KeyStore'
 import { getShiftSelectedElements } from '../methods/getShiftSelectedElemets'
+import { isTouchInteraction } from '../methods/isTouchInteraction'
 
 export type DSInteractionPublishEventNames =
   | 'Interaction:init:pre'
@@ -117,6 +118,10 @@ export default class Interaction<E extends DSInputElement> {
       event.clientY === 0 &&
       event.detail === 0 &&
       event.target
+
+    if (!this.Settings.touchInteractions && isTouchInteraction(event))
+      return false
+
     if (forced) return true
     if (
       ('button' in event && event.button === 2) || // right-clicks
@@ -137,8 +142,8 @@ export default class Interaction<E extends DSInputElement> {
 
   private _start = (event: KeyboardEvent | InteractionEvent) => {
     if ((event.target as DSInputElement).closest('.ds-theader')) return
-    if (event.type === 'touchstart') event.preventDefault() // Call preventDefault() to prevent double click issue, see https://github.com/ThibaultJanBeyer/DragSelect/pull/29 & https://developer.mozilla.org/vi/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent
     if (!this._canInteract(event)) return
+    if (event.type === 'touchstart') event.preventDefault() // Call preventDefault() to prevent double click issue, see https://github.com/ThibaultJanBeyer/DragSelect/pull/29 & https://developer.mozilla.org/vi/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent
     this.isInteracting = true
     this.isDragging = this.isDragEvent(event)
 
@@ -320,9 +325,10 @@ export default class Interaction<E extends DSInputElement> {
     //     passive: false,
     //   })
     else area.addEventListener('mousedown', this.start)
-    area.addEventListener('touchstart', this.start, {
-      passive: false,
-    })
+    if (this.Settings.touchInteractions)
+      area.addEventListener('touchstart', this.start, {
+        passive: false,
+      })
   }
   private removeAreaEventListeners = (
     area = this.DS.stores.SettingsStore.s.areaContainerSelector

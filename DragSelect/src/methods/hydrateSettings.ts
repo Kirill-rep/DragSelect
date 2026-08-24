@@ -198,6 +198,12 @@ export const hydrateSettings = <E extends DSInputElement>(
       false
     ),
     ...hydrateHelper(
+      'touchInteractions',
+      settings.touchInteractions,
+      withFallback,
+      false
+    ),
+    ...hydrateHelper(
       'hoverClass',
       settings.hoverClass,
       withFallback,

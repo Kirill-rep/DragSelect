@@ -57,6 +57,7 @@ import {
   subscriberAliases,
 } from './methods/subscriberAliases'
 import { ensureArray } from './methods/ensureArray'
+import { isTouchDevice } from './methods/isTouchDevice'
 import { DSDropZone } from './modules/DropZone'
 
 // Setup
@@ -166,7 +167,10 @@ class DragSelect<E extends DSInputElement = DSInputElement> {
 
   /** Initializes the functionality. Automatically triggered when created. Also, reset the functionality after a teardown */
   public start = () => {
-    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return
+    if (isTouchDevice()) {
+      this.stopped = true
+      return
+    }
     this.stopped = false
     this.Interaction.init()
   }

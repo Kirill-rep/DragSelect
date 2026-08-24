@@ -401,6 +401,8 @@ type Settings<E extends DSInputElement> = {
     dropTargetThreshold?: number;
     /** [=false] Whether to use Pointer Events to replace traditional Mouse or Touch Events. Useful for tools like Google Blockly. */
     usePointerEvents?: boolean;
+    /** [=false] Whether interactions started by a finger on a screen are allowed at all. When false, no touch listeners are bound and any touch-originated event is rejected, regardless of what the user agent claims the device is. */
+    touchInteractions?: boolean;
     /** [=ds-hover] the class assigned to the mouse hovered items */
     hoverClass?: string;
     /** [=ds-selectable] the class assigned to the elements that can be selected */
