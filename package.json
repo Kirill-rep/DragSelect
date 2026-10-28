@@ -25,5 +25,6 @@
   "bugs": {
     "url": "https://github.com/ThibaultJanBeyer/DragSelect/issues"
   },
-  "homepage": "https://DragSelect.com/"
+  "homepage": "https://DragSelect.com/",
+  "packageManager": "yarn@3.2.2"
 }

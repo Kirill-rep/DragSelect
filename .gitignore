@@ -7,4 +7,6 @@ package-lock.json
 npm-debug.log
 original
 yarn-error.log
-yarn.lock
+
+.yarn/*
+!.yarn/releases
