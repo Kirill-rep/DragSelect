@@ -138,12 +138,29 @@ export default class DropZones<E extends DSInputElement> {
     target.handleDrop()
   }
 
+  private _getZoneByElement = (element: Element) => {
+    const zone = this._zoneByElement.get(element)
+    if (zone || !element.classList.contains(this.Settings.dropZoneClass))
+      return zone
+
+    const newZone = new DropZone<E>({
+      DS: this.DS,
+      PS: this.PS,
+      id: `${(element as HTMLElement).dataset.id}`,
+      element: element as E,
+    })
+    this._zones?.push(newZone)
+    this._zoneByElement.set(element, newZone)
+    this._zoneById.set(newZone.id, newZone)
+    return newZone
+  }
+
   private _getZoneByElementsFromPoint = (
     elements: Element[],
     { x, y }: Vect2
   ) => {
     for (let i = 0, il = elements.length; i < il; i++) {
-      const zone = this._zoneByElement.get(elements[i])
+      const zone = this._getZoneByElement(elements[i])
       if (
         isCollision(
           zone?.rect,
@@ -203,7 +220,7 @@ export default class DropZones<E extends DSInputElement> {
     isDraggingKeyboard?: boolean
     event?: InteractionEvent | KeyboardEvent
   }) => {
-    if (!this._zones?.length) return
+    if (!this._zones) return
 
     let keyboardCoordinates: Vect2 | undefined
     if (!coordinates && isDraggingKeyboard && event) {

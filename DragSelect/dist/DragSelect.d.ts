@@ -693,6 +693,7 @@ declare class DropZones<E extends DSInputElement> {
     });
     private setDropZones;
     private _handleDrops;
+    private _getZoneByElement;
     private _getZoneByElementsFromPoint;
     private stop;
     getItemsDroppedById: (zoneId: string) => void | E[];

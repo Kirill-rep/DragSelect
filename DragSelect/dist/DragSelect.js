@@ -1142,9 +1142,24 @@
                 return;
             target.handleDrop();
         };
+        _getZoneByElement = (element) => {
+            const zone = this._zoneByElement.get(element);
+            if (zone || !element.classList.contains(this.Settings.dropZoneClass))
+                return zone;
+            const newZone = new DropZone({
+                DS: this.DS,
+                PS: this.PS,
+                id: `${element.dataset.id}`,
+                element: element,
+            });
+            this._zones?.push(newZone);
+            this._zoneByElement.set(element, newZone);
+            this._zoneById.set(newZone.id, newZone);
+            return newZone;
+        };
         _getZoneByElementsFromPoint = (elements, { x, y }) => {
             for (let i = 0, il = elements.length; i < il; i++) {
-                const zone = this._zoneByElement.get(elements[i]);
+                const zone = this._getZoneByElement(elements[i]);
                 if (isCollision(zone?.rect, { left: x, right: x, top: y, bottom: y }, Math.min(this.Settings.dropTargetThreshold, 0.5)))
                     return zone;
             }
@@ -1181,7 +1196,7 @@
         };
         /** Returns first DropsZone under current pointer or coordinates if passed */
         getTarget = ({ coordinates, isDraggingKeyboard, event, }) => {
-            if (!this._zones?.length)
+            if (!this._zones)
                 return;
             let keyboardCoordinates;
             if (!coordinates && isDraggingKeyboard && event) {
